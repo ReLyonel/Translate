@@ -22,7 +22,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshTerms }) =>
   const [settings, setSettings] = useState<AppSettings>({
     sourceLanguage: 'English',
     targetLanguage: 'Spanish',
-    model: 'gemini-3.8-flash',
+    model: 'translategemma:27b',
     mode: 'dnd2024',
     terminologyMode: 'pdf_plus_glossary',
     foundryPreservation: true,
@@ -142,7 +142,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onRefreshTerms }) =>
                 <span className="text-[11px] text-slate-400">Llamadas aisladas sin exponer API keys</span>
               </div>
               <span className="px-2 py-1 rounded bg-slate-800 text-slate-300 font-mono font-bold">
-                gemini-3.8-flash
+                Ollama local · translategemma:27b
               </span>
             </div>
           </div>

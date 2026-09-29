@@ -24,7 +24,7 @@ export default function App() {
     fetch('/api/health')
       .then((res) => res.json())
       .then((data) => {
-        setAiConnected(Boolean(data.geminiConfigured));
+        setAiConnected(Boolean(data.connected && data.modelInstalled));
       })
       .catch((err) => {
         console.warn('Backend health check error:', err);

@@ -40,7 +40,7 @@ const INITIAL_STEPS: PipelineStep[] = [
   { id: 'analyze', label: 'Analizando estructura del documento JSON', status: 'pending' },
   { id: 'protect', label: 'Detectando y aislando contenido técnico (@UUID, macros, fórmulas)', status: 'pending' },
   { id: 'extract', label: 'Extrayendo y mapeando términos oficiales de D&D 2024 / PDF', status: 'pending' },
-  { id: 'translate', label: 'Traduciendo contenido humano con Gemini', status: 'pending' },
+  { id: 'translate', label: 'Traduciendo contenido humano con Ollama local', status: 'pending' },
   { id: 'restore', label: 'Restaurando macros, UUIDs y estructura original', status: 'pending' },
   { id: 'validate_json', label: 'Validando sintaxis y parseabilidad de JSON', status: 'pending' },
   { id: 'validate_structure', label: 'Verificando paridad exacta de IDs, UUIDs y claves', status: 'pending' },

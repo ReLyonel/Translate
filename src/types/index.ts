@@ -56,8 +56,11 @@ export interface JsonInspectionResult {
 
 export interface ProtectedToken {
   token: string; // e.g. "[[PROTECTED_001]]"
+  id?: string;
   original: string;
-  type: 'uuid' | 'roll' | 'embed' | 'dice' | 'html' | 'macro' | 'code' | 'system';
+  type: 'uuid' | 'roll' | 'embed' | 'dice' | 'html' | 'macro' | 'code' | 'system' | 'reference';
+  position?: number;
+  hash?: string;
 }
 
 export interface ProtectionResult {
@@ -74,6 +77,8 @@ export interface ValidationReport {
   modifiedUuids: string[];
   modifiedMacros: string[];
   modifiedFormulas: string[];
+  numericChanges?: string[];
+  modifiedPaths?: string[];
   placeholderErrors: string[];
   htmlErrors: string[];
   translatedTextsCount: number;

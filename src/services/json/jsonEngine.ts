@@ -1,19 +1,8 @@
 import { DetectedField, JsonFieldClassification, JsonInspectionResult } from '../../types';
 
 // Fields that are explicitly translatable in Foundry VTT and Babele
-const TRANSLATABLE_KEYS = new Set([
-  'name',
-  'content',
-  'text',
-  'title',
-  'label',
-  'hint',
-  'description',
-  'value', // e.g. system.description.value or system.details.biography.value
-  'chat',
-  'summary',
-  'caption',
-]);
+const isKnownTranslatablePath = (path: string) => /^(name|title|label)$/.test(path) ||
+  /^(system\.(description\.(value|chat)|activities\[\d+\]\.description\.(value|chatFlavor)|details\.biography\.value)|effects\[\d+\]\.(name|description)|pages\[\d+\]\.(name|text\.(content|text)))$/.test(path);
 
 // Keys that are strictly technical and protected in Foundry VTT
 const PROTECTED_KEYS = new Set([
@@ -147,19 +136,11 @@ export class JsonEngine {
         }
 
         // 2. High-Confidence Translatable Check
-        const isHtmlContent = /<[a-z][\s\S]*>/i.test(trimmed);
-        const isDescription =
-          lowerKey === 'description' ||
-          lowerPath.includes('description.value') ||
-          lowerPath.includes('biography.value') ||
-          lowerPath.includes('pages[') && (lowerPath.endsWith('.content') || lowerPath.endsWith('.text'));
+        const isKnownPath = isKnownTranslatablePath(currentPath);
+        const isDescription = lowerPath.includes('description.') || lowerPath.includes('biography.') || lowerPath.includes('.text.');
+        const isNameOrTitle = /(?:^|\.)(name|title|label)$/.test(lowerPath);
 
-        const isNameOrTitle =
-          (lowerKey === 'name' || lowerKey === 'title' || lowerKey === 'label') &&
-          trimmed.length > 0 &&
-          !isInternalIdOrUuid(trimmed);
-
-        if (isDescription || isHtmlContent || isNameOrTitle || TRANSLATABLE_KEYS.has(lowerKey)) {
+        if (isKnownPath && trimmed.length > 0) {
           // If it's a very short single alphanumeric token that looks like an enum or code (e.g. "feat", "spell", "mwak", "str")
           if (trimmed.length <= 4 && !trimmed.includes(' ') && !isNameOrTitle) {
             fields.push({
@@ -178,7 +159,7 @@ export class JsonEngine {
             path: currentPath,
             originalValue: current,
             classification: 'TRANSLATABLE',
-            reason: isDescription ? 'Descripción/Contenido narrativo' : isNameOrTitle ? 'Nombre / Título de entidad' : 'Campo de texto humano',
+            reason: isDescription ? 'Ruta documentada de contenido narrativo' : isNameOrTitle ? 'Ruta documentada de nombre/título' : 'Ruta documentada',
             userInclude: true,
           });
           return;
@@ -192,7 +173,7 @@ export class JsonEngine {
             originalValue: current,
             classification: 'UNCERTAIN',
             reason: `Texto con espacios en clave no estándar "${keyName}"`,
-            userInclude: true,
+            userInclude: false,
           });
           return;
         }

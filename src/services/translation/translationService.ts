@@ -21,8 +21,8 @@ export interface TranslationProvider {
   ): Promise<string[]>;
 }
 
-export class GeminiTranslationProvider implements TranslationProvider {
-  public name = 'Google Gemini (gemini-3.8-flash)';
+export class OllamaTranslationProvider implements TranslationProvider {
+  public name = 'Ollama local (translategemma:27b)';
 
   public async translate(
     texts: string[],
@@ -55,7 +55,7 @@ export class TranslationService {
   private provider: TranslationProvider;
 
   constructor(provider?: TranslationProvider) {
-    this.provider = provider || new GeminiTranslationProvider();
+    this.provider = provider || new OllamaTranslationProvider();
   }
 
   public setProvider(provider: TranslationProvider) {
@@ -126,7 +126,7 @@ export class TranslationService {
       signal?: AbortSignal;
     } = {}
   ): Promise<Map<string, TranslationResult>> {
-    const batchSize = options.batchSize || 8;
+    const batchSize = options.batchSize || 4;
     const results = new Map<string, TranslationResult>();
     const total = items.length;
     let completed = 0;

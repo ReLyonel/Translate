@@ -80,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
               />
               <span className="flex items-center space-x-1">
                 <Sparkles className="w-3 h-3 text-emerald-400" />
-                <span>Gemini 3.8 Flash</span>
+                <span>Ollama · translategemma:27b</span>
               </span>
             </div>
           </div>

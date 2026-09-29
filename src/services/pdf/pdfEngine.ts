@@ -108,35 +108,15 @@ export class PdfEngine {
   }
 
   /**
-   * Sends sample excerpts to the server to extract contextual and high-level D&D terms
+   * Deliberately unavailable: PDF corpus extraction must not send excerpts to any model.
+   * Terminology is created from reviewed local alignments and SRD sources instead.
    */
   public static async extractAiTerminology(
     excerpt: string,
     sourceDocName: string
   ): Promise<TerminologyEntry[]> {
-    const res = await fetch('/api/extract-terminology', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: excerpt }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Error al invocar extracción con IA en el servidor');
-    }
-
-    const data = await res.json();
-    const terms: TerminologyEntry[] = (data.terms || []).map((t: any, idx: number) => ({
-      id: `ai-pdf-${Date.now()}-${idx}`,
-      source: t.source,
-      target: t.target,
-      category: t.category || 'mechanical_term',
-      confidence: t.confidence || 'high',
-      sourceDocument: sourceDocName,
-      status: 'confirmed',
-      context: t.context,
-    }));
-
-    return terms;
+    void excerpt;
+    void sourceDocName;
+    throw new Error('La extracción terminológica por IA está deshabilitada: los PDFs se procesan localmente y requieren revisión humana.');
   }
 }

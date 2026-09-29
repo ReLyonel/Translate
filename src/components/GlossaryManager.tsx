@@ -79,7 +79,7 @@ export const GlossaryManager: React.FC<GlossaryManagerProps> = ({ onRefreshTerms
 
     try {
       // 1. Extract text page by page
-      const { fullText, pageTexts } = await PdfEngine.extractTextFromPdf(file, (p) => {
+      const { pageTexts } = await PdfEngine.extractTextFromPdf(file, (p) => {
         setPdfProgress(p);
       });
 
@@ -87,17 +87,8 @@ export const GlossaryManager: React.FC<GlossaryManagerProps> = ({ onRefreshTerms
       setPdfProgress((prev) => (prev ? { ...prev, status: 'Extrayendo pares terminológicos...' } : null));
       const regexTerms = PdfEngine.extractRegexGlossaryPairs(pageTexts, file.name);
 
-      // If we found few terms and server AI extraction is available, sample first few pages
-      let finalTerms = regexTerms;
-      if (finalTerms.length < 15 && fullText.length > 200) {
-        setPdfProgress((prev) => (prev ? { ...prev, status: 'Analizando contexto técnico con IA...' } : null));
-        try {
-          const aiTerms = await PdfEngine.extractAiTerminology(fullText.slice(0, 12000), file.name);
-          finalTerms = [...finalTerms, ...aiTerms];
-        } catch (e) {
-          console.warn('AI terminology extraction fallback to regex:', e);
-        }
-      }
+      // PDF content is never sent to an AI service. Candidates need local human review.
+      const finalTerms = regexTerms;
 
       setExtractedPdfTerms(finalTerms);
       setPdfProgress((prev) => (prev ? { ...prev, status: `Completado: ${finalTerms.length} términos detectados.` } : null));

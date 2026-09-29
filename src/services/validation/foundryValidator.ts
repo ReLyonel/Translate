@@ -18,6 +18,8 @@ export class FoundryValidator {
     const modifiedMacros: string[] = [];
     const modifiedFormulas: string[] = [];
     const htmlErrors: string[] = [];
+    const numericChanges: string[] = [];
+    const modifiedPaths: string[] = [];
     const placeholderErrors: string[] = [...(stats.placeholderErrors || [])];
 
     let originalKeysCount = 0;
@@ -30,7 +32,8 @@ export class FoundryValidator {
       const uuids: { path: string; val: string }[] = [];
       const macros: string[] = [];
       const formulas: string[] = [];
-      const htmlTexts: string[] = [];
+      const htmlTexts: { path: string; value: string }[] = [];
+      const scalars: { path: string; value: unknown }[] = [];
 
       const walk = (curr: any, path: string) => {
         if (!curr || typeof curr !== 'object') {
@@ -45,6 +48,7 @@ export class FoundryValidator {
         for (const [k, v] of Object.entries(curr)) {
           const currentPath = path ? `${path}.${k}` : k;
           keys.push(currentPath);
+          if (v === null || typeof v !== 'object') scalars.push({ path: currentPath, value: v });
 
           if (k === '_id' || k === 'id') {
             ids.push({ path: currentPath, val: String(v) });
@@ -62,7 +66,7 @@ export class FoundryValidator {
             }
             // Check for HTML
             if (/<[a-z][\s\S]*>/i.test(v)) {
-              htmlTexts.push(v);
+              htmlTexts.push({ path: currentPath, value: v });
             }
           } else {
             walk(v, currentPath);
@@ -71,7 +75,7 @@ export class FoundryValidator {
       };
 
       walk(obj, prefix);
-      return { keys, ids, uuids, macros, formulas, htmlTexts };
+      return { keys, ids, uuids, macros, formulas, htmlTexts, scalars };
     };
 
     const origMeta = extractMetadata(originalJson);
@@ -130,6 +134,14 @@ export class FoundryValidator {
       }
     }
 
+    const translatedScalarMap = new Map(transMeta.scalars.map((entry) => [entry.path, entry.value]));
+    for (const original of origMeta.scalars) {
+      const translated = translatedScalarMap.get(original.path);
+      if (original.value !== translated) modifiedPaths.push(original.path);
+      if (typeof original.value === 'number' && original.value !== translated) numericChanges.push(`Número técnico modificado en ${original.path}: ${original.value} → ${String(translated)}`);
+    }
+    for (const formula of origMeta.formulas) if (!transMeta.formulas.includes(formula)) modifiedFormulas.push(`Fórmula modificada o eliminada: ${formula}`);
+
     // 5. HTML Balance Check
     const checkHtmlBalance = (html: string) => {
       const tagRegex = /<\/?([a-z0-9]+)(?:\s+[^>]*)?>/gi;
@@ -161,11 +173,14 @@ export class FoundryValidator {
       return null;
     };
 
+    const originalHtml = new Map(origMeta.htmlTexts.map((entry) => [entry.path, entry.value.match(/<[^>]+>/g)?.join('') || '']));
     for (const html of transMeta.htmlTexts) {
-      const err = checkHtmlBalance(html);
+      const err = checkHtmlBalance(html.value);
       if (err && !htmlErrors.includes(err)) {
         htmlErrors.push(err);
       }
+      const signature = html.value.match(/<[^>]+>/g)?.join('') || '';
+      if (originalHtml.get(html.path) !== signature) htmlErrors.push(`Estructura HTML o atributos modificados en ${html.path}`);
     }
 
     const isValid =
@@ -174,6 +189,7 @@ export class FoundryValidator {
       modifiedUuids.length === 0 &&
       modifiedMacros.length === 0 &&
       modifiedFormulas.length === 0 &&
+      numericChanges.length === 0 &&
       placeholderErrors.length === 0 &&
       htmlErrors.length === 0;
 
@@ -186,6 +202,8 @@ export class FoundryValidator {
       modifiedUuids,
       modifiedMacros,
       modifiedFormulas,
+      numericChanges,
+      modifiedPaths,
       placeholderErrors,
       htmlErrors,
       translatedTextsCount: stats.translatedCount,

@@ -9,25 +9,46 @@ DATA = Path("data/sources")
 INDEX = DATA / "pdf-index.json"
 
 def normalized(text): return re.sub(r"\s+", " ", text).strip()
+ES_FUNCTION_WORDS = {
+    "el", "la", "los", "las", "un", "una", "unos", "unas", "de", "del", "al", "y", "o", "que", "para", "con", "por", "en", "se", "su", "sus", "esta", "este", "estos", "estas", "puede", "puedes", "cuando", "como", "cada", "tiene", "tienen", "es", "son", "ser", "si", "también", "entre", "sobre", "desde", "hasta", "más", "no", "todo", "todos", "una", "cualquier",
+}
+EN_FUNCTION_WORDS = {
+    "the", "a", "an", "of", "to", "and", "or", "that", "for", "with", "by", "in", "on", "at", "this", "these", "those", "can", "when", "as", "each", "has", "have", "is", "are", "be", "if", "from", "into", "than", "not", "all", "any", "you", "your", "their", "its", "which", "will", "may",
+}
+
 def language(text):
-    sample = f" {text.lower()} "
-    en = sum(sample.count(f" {word} ") for word in ("the", "and", "of", "to", "with", "saving"))
-    es = sum(sample.count(f" {word} ") for word in (" el", " la", " de", " y", " con", " para"))
-    return "en" if en >= 3 and en > es * 1.25 else "es" if es >= 3 and es > en * 1.25 else "unknown"
+    """Classify substantial local text using several linguistic signals, never a filename."""
+    words = re.findall(r"[a-záéíóúüñ]+", text.lower())
+    if len(words) < 20:
+        return "unknown"
+    es_hits = sum(word in ES_FUNCTION_WORDS for word in words)
+    en_hits = sum(word in EN_FUNCTION_WORDS for word in words)
+    accents = len(re.findall(r"[áéíóúüñ¿¡]", text.lower()))
+    # Accents alone are insufficient, but reinforce a Spanish vocabulary signal.
+    es_score = es_hits + min(accents / 8, 3)
+    en_score = en_hits
+    evidence = es_hits + en_hits
+    if evidence < 6:
+        return "unknown"
+    if es_score >= 6 and es_score >= en_score * 1.35:
+        return "es"
+    if en_score >= 6 and en_score >= es_score * 1.35:
+        return "en"
+    return "unknown"
 def pdfs(): return sorted(SOURCE.glob("*.pdf")) if SOURCE.is_dir() else []
 def sha(path):
     h = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""): h.update(block)
     return h.hexdigest()
-def require_fitz():
+def require_pymupdf():
     try:
-        import fitz
-        return fitz
+        import pymupdf
+        return pymupdf
     except ImportError as error:
-        raise SystemExit("Falta PyMuPDF. Instale dependencias locales: python3 -m pip install -r scripts/requirements-pdf.txt") from error
+        raise SystemExit("Falta PyMuPDF. Instale dependencias locales: python -m pip install -r scripts/requirements-pdf.txt") from error
 def entry(path):
-    fitz = require_fitz(); doc = fitz.open(path)
+    pymupdf = require_pymupdf(); doc = pymupdf.open(path)
     first = "".join(page.get_text() for page in list(doc)[:3])
     digest = sha(path)
     return {"id": digest[:16], "path": str(path.resolve()), "fileName": path.name, "size": path.stat().st_size, "sha256": digest, "pageCount": len(doc), "language": language(first), "documentType": "unknown", "status": "pending"}
@@ -39,7 +60,7 @@ def scan():
     DATA.mkdir(parents=True, exist_ok=True); INDEX.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
     return records
 def extract(record):
-    fitz=require_fitz(); doc=fitz.open(record["path"]); folder=DATA/"corpus"/record["id"]; folder.mkdir(parents=True, exist_ok=True)
+    pymupdf=require_pymupdf(); doc=pymupdf.open(record["path"]); folder=DATA/"corpus"/record["id"]; folder.mkdir(parents=True, exist_ok=True)
     pages, segments=[],[]; heading=""
     for number, page in enumerate(doc, 1):
         text=page.get_text("text"); pages.append({"document": record["id"], "page": number, "text": text, "metadata": {"width": page.rect.width, "height": page.rect.height}})

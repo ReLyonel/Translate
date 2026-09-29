@@ -47,11 +47,28 @@ def require_pymupdf():
         return pymupdf
     except ImportError as error:
         raise SystemExit("Falta PyMuPDF. Instale dependencias locales: python -m pip install -r scripts/requirements-pdf.txt") from error
+def sample_document_text(doc, max_samples=12):
+    page_count = len(doc)
+    if page_count == 0:
+        return ""
+    if page_count == 1:
+        positions = [0]
+    else:
+        positions = sorted({
+            round(index * (page_count - 1) / (max_samples - 1))
+            for index in range(max_samples)
+        })
+    samples = []
+    for position in positions:
+        page_text = doc[position].get_text("text")
+        if page_text.strip():
+            samples.append(page_text)
+    return "\n".join(samples)
 def entry(path):
     pymupdf = require_pymupdf(); doc = pymupdf.open(path)
-    first = "".join(page.get_text() for page in list(doc)[:3])
+    sample_text = sample_document_text(doc)
     digest = sha(path)
-    return {"id": digest[:16], "path": str(path.resolve()), "fileName": path.name, "size": path.stat().st_size, "sha256": digest, "pageCount": len(doc), "language": language(first), "documentType": "unknown", "status": "pending"}
+    return {"id": digest[:16], "path": str(path.resolve()), "fileName": path.name, "size": path.stat().st_size, "sha256": digest, "pageCount": len(doc), "language": language(sample_text), "documentType": "unknown", "status": "pending"}
 def scan():
     records=[]
     for path in pdfs():

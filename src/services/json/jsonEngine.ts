@@ -2,7 +2,7 @@ import { DetectedField, JsonFieldClassification, JsonInspectionResult } from '..
 
 // Fields that are explicitly translatable in Foundry VTT and Babele
 const isKnownTranslatablePath = (path: string) => /^(name|title|label)$/.test(path) ||
-  /^(system\.(description\.(value|chat)|activities\[\d+\]\.description\.(value|chatFlavor)|details\.biography\.value)|effects\[\d+\]\.(name|description)|pages\[\d+\]\.(name|text\.(content|text)))$/.test(path);
+  /^(system\.(description\.(value|chat)|activities(?:\[\d+\]|\.\d+)\.description\.(value|chatFlavor)|details\.biography\.value)|effects(?:\[\d+\]|\.\d+)\.(name|description)|pages(?:\[\d+\]|\.\d+)\.(name|text\.(content|text)))$/.test(path);
 
 // Keys that are strictly technical and protected in Foundry VTT
 const PROTECTED_KEYS = new Set([
@@ -141,19 +141,6 @@ export class JsonEngine {
         const isNameOrTitle = /(?:^|\.)(name|title|label)$/.test(lowerPath);
 
         if (isKnownPath && trimmed.length > 0) {
-          // If it's a very short single alphanumeric token that looks like an enum or code (e.g. "feat", "spell", "mwak", "str")
-          if (trimmed.length <= 4 && !trimmed.includes(' ') && !isNameOrTitle) {
-            fields.push({
-              id: `f-${fields.length + 1}`,
-              path: currentPath,
-              originalValue: current,
-              classification: 'PROTECTED',
-              reason: 'Código o enumeración corta de sistema',
-              userInclude: false,
-            });
-            return;
-          }
-
           fields.push({
             id: `f-${fields.length + 1}`,
             path: currentPath,

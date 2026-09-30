@@ -31,6 +31,43 @@ describe('Foundry-safe pipeline', () => {
   });
 
 
+  it('protects HTML tags and entities while leaving visible prose translatable', () => {
+    const input = '<p><strong>Global Play Lead:</strong> Dan Ayoub</p><h2>Core Software Development</h2><p><em>Arcana Unleashed</em> &amp; more</p>';
+    const protectedValue = ProtectedContentEngine.protect(input);
+
+    expect(protectedValue.protectedText).not.toContain('<strong>');
+    expect(protectedValue.protectedText).not.toContain('</strong>');
+    expect(protectedValue.protectedText).not.toContain('<h2>');
+    expect(protectedValue.protectedText).not.toContain('class=');
+    expect(protectedValue.protectedText).not.toContain('&amp;');
+
+    const translated = protectedValue.protectedText
+      .replaceAll('Global Play Lead:', 'Director Global de Juego:')
+      .replaceAll('Core Software Development', 'Desarrollo del Software Principal')
+      .replaceAll('Arcana Unleashed', 'Arcana Desatada')
+      .replaceAll('more', 'más');
+
+    const restored = ProtectedContentEngine.restore(translated, protectedValue.tokens);
+    expect(restored.isValid).toBe(true);
+    expect(restored.restoredText).toBe(
+      '<p><strong>Director Global de Juego:</strong> Dan Ayoub</p><h2>Desarrollo del Software Principal</h2><p><em>Arcana Desatada</em> &amp; más</p>'
+    );
+  });
+
+  it('rejects duplicated or missing HTML placeholders instead of exporting corrupt markup', () => {
+    const input = '<h2>Credits</h2><p><strong>Lead:</strong> Name</p>';
+    const protectedValue = ProtectedContentEngine.protect(input);
+    const htmlTokens = [...protectedValue.tokens.entries()].filter(([, info]) => info.type === 'html');
+    expect(htmlTokens.length).toBeGreaterThan(0);
+
+    const firstHtmlToken = htmlTokens[0][0];
+    const duplicated = protectedValue.protectedText + firstHtmlToken;
+    expect(ProtectedContentEngine.restore(duplicated, protectedValue.tokens).isValid).toBe(false);
+
+    const missing = protectedValue.protectedText.replace(firstHtmlToken, 'text');
+    expect(ProtectedContentEngine.restore(missing, protectedValue.tokens).isValid).toBe(false);
+  });
+
   it('classifies nested FifthPendium-style entries and preserves technical mappings', () => {
     const source = {
       label: 'Classes',

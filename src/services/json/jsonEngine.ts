@@ -27,9 +27,18 @@ const PROTECTED_PATH_PREFIXES = [
   'folders.',
 ];
 
+const TRANSLATABLE_PROTECTED_PATHS = new Set([
+  // Book/Journal navigation metadata that is visibly rendered to users.
+  'flags.dnd5e.title',
+]);
+
 const isKnownTranslatablePath = (path: string, keyName: string) => {
   const lowerPath = path.toLowerCase();
   const lowerKey = keyName.toLowerCase();
+
+  if (TRANSLATABLE_PROTECTED_PATHS.has(lowerPath)) {
+    return true;
+  }
 
   if (PROTECTED_PATH_PREFIXES.some((prefix) => lowerPath.startsWith(prefix))) {
     return false;

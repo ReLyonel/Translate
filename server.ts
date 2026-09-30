@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parseJsonStringArray } from './src/services/translation/jsonResponseParser';
+import { parseTranslationResponse } from './src/services/translation/jsonResponseParser';
 
 dotenv.config();
 
@@ -29,7 +29,18 @@ async function ollamaChat(messages: { role: 'system' | 'user'; content: string }
       messages,
       // Native JSON output is the first line of defense. The parser below
       // remains defensive because a local model can still behave unexpectedly.
-      format: 'json',
+      format: {
+        type: 'object',
+        properties: {
+          translations: {
+            type: 'array',
+            items: { type: 'string' },
+            minItems: 1,
+          },
+        },
+        required: ['translations'],
+        additionalProperties: false,
+      },
       options: { temperature, num_ctx: numCtx },
     }),
   });
@@ -46,7 +57,7 @@ async function translateTexts(
   targetLanguage: string
 ) {
   const terms = terminology.map((term) => `- ${term.source || ''} => ${term.target || ''}`).join('\n');
-  const system = `Eres un traductor técnico local para Foundry VTT y D&D 2024. Traduce de ${sourceLanguage} a ${targetLanguage}. Conserva exactamente, sin modificar, eliminar, duplicar ni reordenar, todos los placeholders [[PROTECTED_###]]. Algunos placeholders representan etiquetas HTML, entidades HTML y referencias de Foundry: nunca intentes reconstruir, corregir ni estilizar esas etiquetas. Traduce únicamente el texto humano que queda fuera de los placeholders. La terminología es obligatoria. No expliques nada: devuelve exclusivamente un arreglo JSON de strings de igual tamaño y orden.`;
+  const system = `Eres un traductor técnico local para Foundry VTT y D&D 2024. Traduce de ${sourceLanguage} a ${targetLanguage}. Conserva exactamente, sin modificar, eliminar, duplicar ni reordenar, todos los placeholders [[PROTECTED_###]]. Algunos placeholders representan etiquetas HTML, entidades HTML y referencias de Foundry: nunca intentes reconstruir, corregir ni estilizar esas etiquetas. Traduce únicamente el texto humano que queda fuera de los placeholders. La terminología es obligatoria. La salida DEBE ser un único objeto JSON con exactamente esta forma: {"translations":["..."]}. El arreglo translations debe contener exactamente ${texts.length} strings y mantener el mismo orden que los textos de entrada. No uses las frases de entrada como claves. No añadas ningún otro campo. No expliques nada.`;
   const user = `Contexto: ${context.docType || 'Foundry VTT'}; ${context.notes || ''}\nTerminología:\n${terms || '(ninguna)'}\n\nTextos:\n${JSON.stringify(texts)}`;
 
   const raw = await ollamaChat([
@@ -54,7 +65,7 @@ async function translateTexts(
     { role: 'user', content: user },
   ]);
 
-  return parseJsonStringArray(raw, texts.length);
+  return parseTranslationResponse(raw, texts.length);
 }
 
 app.get('/api/health', async (_req: Request, res: Response) => {

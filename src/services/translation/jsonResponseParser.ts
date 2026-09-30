@@ -1,44 +1,88 @@
 /**
- * Parses Ollama's response as the expected JSON array of strings.
+ * Parses Ollama's response as the expected translation payload.
  *
- * Ollama is instructed to emit native JSON, but a local model can still append
- * markdown or explanatory text. We therefore scan for complete JSON arrays and
- * accept only one that matches the expected output contract.
+ * Preferred contract:
+ *   { "translations": ["...", "..."] }
+ *
+ * Compatibility fallbacks:
+ *   - a bare JSON array of strings
+ *   - an object whose values are the translated strings
+ *
+ * The latter is intentionally kept as a fallback for translation-tuned local
+ * models such as TranslateGemma that may naturally emit source -> translation
+ * maps despite an explicit array instruction.
  */
-export function parseJsonStringArray(raw: string, expectedLength: number): string[] {
+export function parseTranslationResponse(raw: string, expectedLength: number): string[] {
   const source = raw.replace(/^\uFEFF/, '').trim();
-  const candidates = extractBalancedArrays(source);
+  const candidates = extractBalancedJsonValues(source);
 
   for (const candidate of candidates) {
+    let parsed: unknown;
+
     try {
-      const parsed = JSON.parse(candidate) as unknown;
-      if (
-        Array.isArray(parsed) &&
-        parsed.length === expectedLength &&
-        parsed.every((value) => typeof value === 'string')
-      ) {
-        return parsed as string[];
-      }
+      parsed = JSON.parse(candidate);
     } catch {
-      // Try the next balanced array candidate.
+      continue;
     }
+
+    const translations = extractTranslations(parsed, expectedLength);
+    if (translations) return translations;
   }
 
   const preview = source.slice(0, 1200);
   throw new Error(
     [
-      'Ollama no devolvió un arreglo JSON válido con la cantidad de traducciones esperada.',
+      'Ollama no devolvió una respuesta JSON válida con la cantidad de traducciones esperada.',
       `Esperadas: ${expectedLength}.`,
       `Respuesta recibida (primeros 1200 caracteres): ${preview}`,
     ].join(' ')
   );
 }
 
-function extractBalancedArrays(source: string): string[] {
+function extractTranslations(parsed: unknown, expectedLength: number): string[] | null {
+  if (Array.isArray(parsed)) {
+    if (
+      parsed.length === expectedLength &&
+      parsed.every((value) => typeof value === 'string')
+    ) {
+      return parsed as string[];
+    }
+    return null;
+  }
+
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const record = parsed as Record<string, unknown>;
+
+  if ('translations' in record) {
+    const translations = record.translations;
+    if (
+      Array.isArray(translations) &&
+      translations.length === expectedLength &&
+      translations.every((value) => typeof value === 'string')
+    ) {
+      return translations as string[];
+    }
+    return null;
+  }
+
+  const values = Object.values(record);
+  if (
+    values.length === expectedLength &&
+    values.every((value) => typeof value === 'string')
+  ) {
+    return values as string[];
+  }
+
+  return null;
+}
+
+function extractBalancedJsonValues(source: string): string[] {
   const candidates: string[] = [];
 
   for (let start = 0; start < source.length; start++) {
-    if (source[start] !== '[') continue;
+    const opening = source[start];
+    if (opening !== '[' && opening !== '{') continue;
 
     let depth = 0;
     let inString = false;
@@ -63,9 +107,9 @@ function extractBalancedArrays(source: string): string[] {
         continue;
       }
 
-      if (char === '[') {
+      if (char === '[' || char === '{') {
         depth++;
-      } else if (char === ']') {
+      } else if (char === ']' || char === '}') {
         depth--;
         if (depth === 0) {
           candidates.push(source.slice(start, index + 1));

@@ -162,17 +162,25 @@ export class JsonEngine {
         const lowerPath = currentPath.toLowerCase();
 
         // 1. Immediately Protected Check
+        const explicitlyTranslatablePath = TRANSLATABLE_PROTECTED_PATHS.has(lowerPath);
+
         if (
-          PROTECTED_KEYS.has(lowerKey) ||
-          isUrlOrPath(trimmed) ||
-          isInternalIdOrUuid(trimmed) ||
-          lowerPath.includes('flags.') ||
-          lowerPath.includes('_stats.') ||
-          lowerPath.includes('ownership.') ||
-          lowerPath.includes('permission.') ||
-          lowerPath.startsWith('mapping.') ||
-          lowerPath.startsWith('folders.') ||
-          lowerPath.endsWith('.img') ||
+          !explicitlyTranslatablePath &&
+          (
+            PROTECTED_KEYS.has(lowerKey) ||
+            isUrlOrPath(trimmed) ||
+            isInternalIdOrUuid(trimmed) ||
+            lowerPath.includes('flags.') ||
+            lowerPath.includes('_stats.') ||
+            lowerPath.includes('ownership.') ||
+            lowerPath.includes('permission.') ||
+            lowerPath.startsWith('mapping.') ||
+            lowerPath.startsWith('folders.') ||
+            lowerPath.endsWith('.img') ||
+            lowerPath.endsWith('.type') ||
+            lowerPath.endsWith('._id')
+          )
+        ) {
           lowerPath.endsWith('.type') ||
           lowerPath.endsWith('._id')
         ) {

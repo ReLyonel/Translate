@@ -30,6 +30,69 @@ describe('Foundry-safe pipeline', () => {
     expect(restored.restoredText).toContain('[[/item .ABC123]]{Contrahechizo}');
   });
 
+
+  it('classifies nested FifthPendium-style entries and preserves technical mappings', () => {
+    const source = {
+      label: 'Classes',
+      mapping: {
+        advancement: { path: 'system.advancement', converter: 'advancement' },
+        effects: { path: 'effects', converter: 'effects' },
+        activities: { path: 'system.activities', converter: 'activities' },
+      },
+      folders: {
+        'Path of the Fanatic': 'Senda del Fanático',
+      },
+      entries: {
+        abc123: {
+          name: 'Path of Duplicity',
+          description: '<p>As a Bonus Action, create an illusion at 30 feet.</p>',
+          activities: {
+            act123: { name: 'Invoke' },
+          },
+          effects: {
+            fx123: { name: 'Duplicity', description: 'The illusion distracts the target.' },
+          },
+          advancement: {
+            adv123: { title: 'Features' },
+          },
+        },
+      },
+    };
+
+    const fields = JsonEngine.analyze(source).fields;
+    const translatablePaths = fields
+      .filter((field) => field.classification === 'TRANSLATABLE')
+      .map((field) => field.path);
+
+    expect(translatablePaths).toEqual(expect.arrayContaining([
+      'label',
+      'entries.abc123.name',
+      'entries.abc123.description',
+      'entries.abc123.activities.act123.name',
+      'entries.abc123.effects.fx123.name',
+      'entries.abc123.effects.fx123.description',
+      'entries.abc123.advancement.adv123.title',
+    ]));
+
+    expect(fields.find((field) => field.path === 'mapping.advancement.path')?.classification).toBe('PROTECTED');
+    expect(fields.find((field) => field.path === 'mapping.advancement.converter')?.classification).toBe('PROTECTED');
+    expect(fields.find((field) => field.path === 'folders.Path of the Fanatic')?.classification).toBe('PROTECTED');
+
+    const translated = JsonEngine.reconstruct(source, [
+      { path: 'label', value: 'Clases' },
+      { path: 'entries.abc123.name', value: 'Senda de la Duplicidad' },
+      { path: 'entries.abc123.description', value: '<p>Como acción adicional, crea una ilusión a 30 pies.</p>' },
+      { path: 'entries.abc123.activities.act123.name', value: 'Invocar' },
+      { path: 'entries.abc123.effects.fx123.name', value: 'Duplicidad' },
+      { path: 'entries.abc123.effects.fx123.description', value: 'La ilusión distrae al objetivo.' },
+      { path: 'entries.abc123.advancement.adv123.title', value: 'Rasgos' },
+    ]);
+
+    expect(translated.mapping).toEqual(source.mapping);
+    expect(translated.folders).toEqual(source.folders);
+    expect(translated.entries.abc123.activities.act123.name).toBe('Invocar');
+  });
+
   it('preserves UUIDs, rolls, formulas, dice, numbers and HTML attributes', () => {
     const original = { _id: 'same', uuid: 'Item.same', system: { formula: '2d6 + 3', description: { value: '<p class="rule"><a href="x" data-uuid="Item.same">Roll @UUID[Item.same]{Fire Bolt} [[/damage 2d6[fire]]]</a></p>' }, level: 3 } };
     const safe = JsonEngine.reconstruct(original, [{ path: 'system.description.value', value: '<p class="rule"><a href="x" data-uuid="Item.same">Tira @UUID[Item.same]{Proyectil de fuego} [[/damage 2d6[fire]]]</a></p>' }]);

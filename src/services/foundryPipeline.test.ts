@@ -93,6 +93,71 @@ describe('Foundry-safe pipeline', () => {
     expect(translated.entries.abc123.activities.act123.name).toBe('Invocar');
   });
 
+  it('handles Foundry Book/JournalEntry structure and only translates visible metadata', () => {
+    const source = {
+      _id: 'aunCharacterOpZQ',
+      folder: 'Uf3qYTTjlBDX7Lkg',
+      name: 'Character Options',
+      pages: [{
+        _id: 'characterOPTIOFZ',
+        type: 'text',
+        name: 'Character Options',
+        sort: 100200,
+        text: {
+          content: '<p>@Embed[Compendium.dnd-arcana-unleashed.book.JournalEntry.aunArtHandoutsG2.JournalEntryPage.LNQsrH9X4xuajIMD classes=overlay-caption cite=false]</p><p><span class="small-caps">This chapter is full of new character</span> options you can use to make characters suited to magical settings.</p>',
+          format: 1,
+        },
+        title: { level: 1, show: false },
+      }],
+      flags: {
+        dnd5e: {
+          type: 'chapter',
+          position: 2,
+          title: 'Chapter 1: Character Options',
+          showPages: false,
+          navigation: { next: 'aunSubclassesywh', up: 'aunAMultiverseln' },
+        },
+        core: { viewMode: 2 },
+      },
+      _stats: {
+        coreVersion: '14.367',
+        systemId: 'dnd5e',
+        systemVersion: '6.0.0',
+        createdTime: 1784047165093,
+      },
+    };
+
+    const fields = JsonEngine.analyze(source).fields;
+    const paths = fields
+      .filter((field) => field.classification === 'TRANSLATABLE')
+      .map((field) => field.path);
+
+    expect(paths).toEqual(expect.arrayContaining([
+      'name',
+      'pages[0].name',
+      'pages[0].text.content',
+      'flags.dnd5e.title',
+    ]));
+
+    expect(fields.find((field) => field.path === 'flags.dnd5e.type')?.classification).toBe('PROTECTED');
+    expect(fields.find((field) => field.path === 'flags.dnd5e.navigation.next')?.classification).toBe('PROTECTED');
+    expect(fields.find((field) => field.path === '_stats.coreVersion')?.classification).toBe('PROTECTED');
+
+    const translated = JsonEngine.reconstruct(source, [
+      { path: 'name', value: 'Opciones de personaje' },
+      { path: 'pages[0].name', value: 'Opciones de personaje' },
+      { path: 'pages[0].text.content', value: '<p>@Embed[Compendium.dnd-arcana-unleashed.book.JournalEntry.aunArtHandoutsG2.JournalEntryPage.LNQsrH9X4xuajIMD classes=overlay-caption cite=false]</p><p><span class="small-caps">Este capítulo está lleno de nuevas opciones de personaje</span> para crear personajes adecuados para entornos mágicos.</p>' },
+      { path: 'flags.dnd5e.title', value: 'Capítulo 1: Opciones de personaje' },
+    ]);
+
+    expect(translated._id).toBe(source._id);
+    expect(translated.folder).toBe(source.folder);
+    expect(translated.flags.dnd5e.type).toBe(source.flags.dnd5e.type);
+    expect(translated.flags.dnd5e.navigation).toEqual(source.flags.dnd5e.navigation);
+    expect(translated._stats).toEqual(source._stats);
+    expect(translated.pages[0].text.content).toContain('@Embed[Compendium.dnd-arcana-unleashed.book.JournalEntry.aunArtHandoutsG2.JournalEntryPage.LNQsrH9X4xuajIMD classes=overlay-caption cite=false]');
+  });
+
   it('preserves UUIDs, rolls, formulas, dice, numbers and HTML attributes', () => {
     const original = { _id: 'same', uuid: 'Item.same', system: { formula: '2d6 + 3', description: { value: '<p class="rule"><a href="x" data-uuid="Item.same">Roll @UUID[Item.same]{Fire Bolt} [[/damage 2d6[fire]]]</a></p>' }, level: 3 } };
     const safe = JsonEngine.reconstruct(original, [{ path: 'system.description.value', value: '<p class="rule"><a href="x" data-uuid="Item.same">Tira @UUID[Item.same]{Proyectil de fuego} [[/damage 2d6[fire]]]</a></p>' }]);

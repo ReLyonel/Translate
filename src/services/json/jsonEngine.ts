@@ -15,6 +15,7 @@ const TRANSLATABLE_KEYS = new Set([
   'tooltip',
   'caption',
   'content',
+  'text',
 ]);
 
 const PROTECTED_PATH_PREFIXES = [
@@ -32,6 +33,12 @@ const isKnownTranslatablePath = (path: string, keyName: string) => {
 
   if (PROTECTED_PATH_PREFIXES.some((prefix) => lowerPath.startsWith(prefix))) {
     return false;
+  }
+
+  // Foundry commonly stores prose inside *.description.value,
+  // *.biography.value and *.text.text/content.
+  if (/(^|\\.)(description|biography|text)\\.(value|content|text)$/.test(lowerPath)) {
+    return true;
   }
 
   return TRANSLATABLE_KEYS.has(lowerKey);

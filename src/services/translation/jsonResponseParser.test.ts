@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseJsonStringArray } from './jsonResponseParser';
+import { parseTranslationResponse } from './jsonResponseParser';
 
 describe('Ollama JSON response parser', () => {
   it('accepts valid JSON followed by explanatory text', () => {
@@ -8,6 +8,16 @@ describe('Ollama JSON response parser', () => {
       'Primera traducción',
       'Segunda traducción',
     ]);
+  });
+
+  it('accepts Ollama structured output with a translations property', () => {
+    const raw = '{"translations":["Primera","Segunda"]}';
+    expect(parseTranslationResponse(raw, 2)).toEqual(['Primera', 'Segunda']);
+  });
+
+  it('accepts a translation object emitted by a translation-tuned model', () => {
+    const raw = '{"Original uno":"Primera","Original dos":"Segunda"}';
+    expect(parseTranslationResponse(raw, 2)).toEqual(['Primera', 'Segunda']);
   });
 
   it('accepts JSON wrapped in markdown fences', () => {

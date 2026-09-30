@@ -26,7 +26,11 @@ describe('Ollama JSON response parser', () => {
   });
 
   it('handles brackets and escaped quotes inside translated strings', () => {
-    const raw = '["Texto con [corchetes] y \\"comillas\\", "Segundo"] texto extra';
+    const raw = JSON.stringify([
+      'Texto con [corchetes] y "comillas"',
+      'Segundo',
+    ]) + ' texto extra';
+
     expect(parseTranslationResponse(raw, 2)).toEqual([
       'Texto con [corchetes] y "comillas"',
       'Segundo',

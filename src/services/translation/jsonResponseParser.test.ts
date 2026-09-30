@@ -1,0 +1,35 @@
+import { describe, expect, it } from 'vitest';
+import { parseJsonStringArray } from './jsonResponseParser';
+
+describe('Ollama JSON response parser', () => {
+  it('accepts valid JSON followed by explanatory text', () => {
+    const raw = '["Primera traducción", "Segunda traducción"]\\n\\nListo.';
+    expect(parseJsonStringArray(raw, 2)).toEqual([
+      'Primera traducción',
+      'Segunda traducción',
+    ]);
+  });
+
+  it('accepts JSON wrapped in markdown fences', () => {
+    const raw = 'Aquí está el resultado:\\n\\n```json\\n["Primera", "Segunda"]\\n```';
+    expect(parseJsonStringArray(raw, 2)).toEqual(['Primera', 'Segunda']);
+  });
+
+  it('handles brackets and escaped quotes inside translated strings', () => {
+    const raw = '["Texto con [corchetes] y \\"comillas\\"", "Segundo"] texto extra';
+    expect(parseJsonStringArray(raw, 2)).toEqual([
+      'Texto con [corchetes] y "comillas"',
+      'Segundo',
+    ]);
+  });
+
+  it('rejects an array with the wrong number of items', () => {
+    expect(() => parseJsonStringArray('["Uno"]', 2)).toThrow(/Esperadas: 2/);
+  });
+
+  it('rejects responses without a valid JSON array', () => {
+    expect(() => parseJsonStringArray('No hay JSON válido aquí.', 2)).toThrow(
+      /no devolvió un arreglo JSON válido/
+    );
+  });
+});

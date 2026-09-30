@@ -19,6 +19,13 @@ export class ProtectedContentEngine {
     };
     // Reference and roll command syntax is protected separately from its optional visible label.
     const patterns: [RegExp, ProtectedToken['type']][] = [
+      // Entire HTML tags are protected so the model can never add/remove attributes,
+      // duplicate headings, or corrupt closing tags.
+      [/<\/?[A-Za-z][^<>]*>|<!--[\s\S]*?-->/g, 'html'],
+      // HTML entities must remain byte-for-byte stable.
+      [/&(?:[A-Za-z][A-Za-z0-9]+|#\d+|#x[0-9A-Fa-f]+);/g, 'html'],
+      // Foundry inline references can appear outside @UUID-style macros.
+      [/&Reference\[[^\]]+\]/g, 'reference'],
       [/@(?:UUID|Embed|Roll|Compendium|Item|Actor|JournalEntry|RollTable|Scene)\s*\[[^\]]+\]/g, 'reference'],
       [/\[\[(?:lookup\s+[^\]]+|\/damage\s+[^\]]+|\/item\s+[^\]]+|\/r(?:oll)?\s+[^\]]+|[^\]]*\d+d\d+[^\]]*)\]\]/gi, 'roll'],
       [/\{\{[^}]+\}\}|\$\{[^}]+\}/g, 'system'],

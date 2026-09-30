@@ -18,7 +18,7 @@ const keepAlive = process.env.OLLAMA_KEEP_ALIVE || '30m';
 
 app.use(express.json({ limit: '50mb' }));
 
-async function ollamaChat(messages: { role: 'system' | 'user'; content: string }[]) {
+async function ollamaChat(messages: { role: 'system' | 'user'; content: string }[], expectedLength: number) {
   const response = await fetch(`${ollamaBaseUrl}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -35,7 +35,8 @@ async function ollamaChat(messages: { role: 'system' | 'user'; content: string }
           translations: {
             type: 'array',
             items: { type: 'string' },
-            minItems: 1,
+            minItems: expectedLength,
+            maxItems: expectedLength,
           },
         },
         required: ['translations'],
@@ -63,7 +64,7 @@ async function translateTexts(
   const raw = await ollamaChat([
     { role: 'system', content: system },
     { role: 'user', content: user },
-  ]);
+  ], texts.length);
 
   return parseTranslationResponse(raw, texts.length);
 }

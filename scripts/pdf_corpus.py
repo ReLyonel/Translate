@@ -76,18 +76,101 @@ def scan():
         except Exception as error: records.append({"id": hashlib.sha256(str(path).encode()).hexdigest()[:16], "path": str(path.resolve()), "fileName": path.name, "size": path.stat().st_size, "sha256": "", "pageCount": 0, "language": "unknown", "documentType": "unknown", "status": "error", "error": str(error)})
     DATA.mkdir(parents=True, exist_ok=True); INDEX.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
     return records
+def extract_text_blocks(page):
+    blocks = []
+    for block in page.get_text("blocks", sort=True):
+        if len(block) < 7:
+            continue
+        if block[6] != 0:
+            continue
+        text = normalized(block[4])
+        if len(text) < 2:
+            continue
+        blocks.append(text)
+    return blocks
+def classify_block(text):
+    compact = normalized(text)
+    if len(compact) < 20:
+        return "fragment"
+    # ?ndices y tablas de contenido: abundan las l?neas de puntos y n?meros.
+    dotted_runs = len(re.findall(r"\.{4,}", compact))
+    digit_ratio = sum(ch.isdigit() for ch in compact) / max(len(compact), 1)
+    if dotted_runs >= 2:
+        return "index"
+    if digit_ratio > 0.18 and len(compact) < 300:
+        return "table"
+    if len(compact) < 110 and not compact.endswith((".", ":", ";")):
+        return "heading"
+    return "paragraph"
+def is_alignment_eligible(text, block_type):
+    compact = normalized(text)
+    if block_type == "paragraph":
+        if len(compact) < 40:
+            return False
+        if re.search(r"\.{4,}", compact):
+            return False
+        return True
+    if block_type == "heading":
+        return 5 <= len(compact) <= 140
+    return False
 def extract(record):
-    pymupdf=require_pymupdf(); doc=pymupdf.open(record["path"]); folder=DATA/"corpus"/record["id"]; folder.mkdir(parents=True, exist_ok=True)
-    pages, segments=[],[]; heading=""
+    pymupdf = require_pymupdf()
+    doc = pymupdf.open(record["path"])
+    folder = DATA / "corpus" / record["id"]
+    folder.mkdir(parents=True, exist_ok=True)
+    pages, segments = [], []
+    heading = ""
     for number, page in enumerate(doc, 1):
-        text=page.get_text("text"); pages.append({"document": record["id"], "page": number, "text": text, "metadata": {"width": page.rect.width, "height": page.rect.height}})
-        for order, paragraph in enumerate(filter(None, (normalized(p) for p in text.split("\n\n"))), 1):
-            kind="heading" if len(paragraph) < 110 and not paragraph.endswith(".") else "paragraph"
-            if kind == "heading": heading=paragraph
-            segments.append({"id": f'{record["id"]}-p{number}-s{order}', "language": record["language"] if record["language"] != "unknown" else language(paragraph), "sourceDocument": record["id"], "page": number, "text": paragraph, "textNormalized": normalized(paragraph), "textHash": hashlib.sha256(normalized(paragraph).encode()).hexdigest(), "type": kind, "heading": heading, "metadata": {"order": order}})
-    for name, rows in (("pages.jsonl",pages),("segments.jsonl",segments)):
-        (folder/name).write_text("".join(json.dumps(row,ensure_ascii=False)+"\n" for row in rows),encoding="utf-8")
-    record["status"]="processed"; record["segmentCount"]=len(segments)
+        page_text = page.get_text("text")
+        pages.append({
+            "document": record["id"],
+            "page": number,
+            "text": page_text,
+            "metadata": {
+                "width": page.rect.width,
+                "height": page.rect.height,
+            },
+        })
+        for order, block_text in enumerate(extract_text_blocks(page), 1):
+            kind = classify_block(block_text)
+            if kind == "heading":
+                heading = block_text
+            normalized_text = normalized(block_text)
+            alignment_eligible = is_alignment_eligible(
+                block_text,
+                kind,
+            )
+            segments.append({
+                "id": f'{record["id"]}-p{number}-s{order}',
+                "language": (
+                    record["language"]
+                    if record["language"] != "unknown"
+                    else language(block_text)
+                ),
+                "sourceDocument": record["id"],
+                "page": number,
+                "text": block_text,
+                "textNormalized": normalized_text,
+                "textHash": hashlib.sha256(
+                    normalized_text.encode()
+                ).hexdigest(),
+                "type": kind,
+                "heading": heading,
+                "alignmentEligible": alignment_eligible,
+                "metadata": {
+                    "order": order,
+                },
+            })
+    for name, rows in (("pages.jsonl", pages), ("segments.jsonl", segments)):
+        (folder / name).write_text(
+            "".join(
+                json.dumps(row, ensure_ascii=False) + "\n"
+                for row in rows
+            ),
+            encoding="utf-8",
+        )
+    record["status"] = "processed"
+    record["segmentCount"] = len(segments)
 def main():
     command=sys.argv[1]; records=scan() if command in ("scan","extract") or not INDEX.exists() else json.loads(INDEX.read_text(encoding="utf-8"))
     if command == "extract":

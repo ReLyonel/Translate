@@ -1,8 +1,41 @@
 import { DetectedField, JsonFieldClassification, JsonInspectionResult } from '../../types';
 
-// Fields that are explicitly translatable in Foundry VTT and Babele
-const isKnownTranslatablePath = (path: string) => /^(name|title|label)$/.test(path) ||
-  /^(system\.(description\.(value|chat)|activities(?:\[\d+\]|\.\d+)\.description\.(value|chatFlavor)|details\.biography\.value)|effects(?:\[\d+\]|\.\d+)\.(name|description)|pages(?:\[\d+\]|\.\d+)\.(name|text\.(content|text)))$/.test(path);
+// Human-readable Foundry/Babele fields. Matching is based on the final key
+// instead of a single hard-coded root path, so nested structures such as:
+// entries.<id>.description, activities.<id>.name, advancement.<id>.title
+// are handled without translating technical containers.
+const TRANSLATABLE_KEYS = new Set([
+  'name',
+  'title',
+  'label',
+  'description',
+  'chat',
+  'chatflavor',
+  'flavor',
+  'tooltip',
+  'caption',
+  'content',
+]);
+
+const PROTECTED_PATH_PREFIXES = [
+  'flags.',
+  '_stats.',
+  'ownership.',
+  'permission.',
+  'mapping.',
+  'folders.',
+];
+
+const isKnownTranslatablePath = (path: string, keyName: string) => {
+  const lowerPath = path.toLowerCase();
+  const lowerKey = keyName.toLowerCase();
+
+  if (PROTECTED_PATH_PREFIXES.some((prefix) => lowerPath.startsWith(prefix))) {
+    return false;
+  }
+
+  return TRANSLATABLE_KEYS.has(lowerKey);
+};
 
 // Keys that are strictly technical and protected in Foundry VTT
 const PROTECTED_KEYS = new Set([
@@ -50,6 +83,8 @@ const PROTECTED_KEYS = new Set([
   'modifiedTime',
   'lastModifiedBy',
   'schemaVersion',
+  'converter',
+  'mapping',
 ]);
 
 export class JsonEngine {
@@ -136,7 +171,7 @@ export class JsonEngine {
         }
 
         // 2. High-Confidence Translatable Check
-        const isKnownPath = isKnownTranslatablePath(currentPath);
+        const isKnownPath = isKnownTranslatablePath(currentPath, keyName);
         const isDescription = lowerPath.includes('description.') || lowerPath.includes('biography.') || lowerPath.includes('.text.');
         const isNameOrTitle = /(?:^|\.)(name|title|label)$/.test(lowerPath);
 

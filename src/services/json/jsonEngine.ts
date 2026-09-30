@@ -36,6 +36,7 @@ const isKnownTranslatablePath = (path: string, keyName: string) => {
   const lowerPath = path.toLowerCase();
   const lowerKey = keyName.toLowerCase();
 
+  // Explicit visible Book/Journal metadata can live under flags.
   if (TRANSLATABLE_PROTECTED_PATHS.has(lowerPath)) {
     return true;
   }
@@ -46,7 +47,7 @@ const isKnownTranslatablePath = (path: string, keyName: string) => {
 
   // Foundry commonly stores prose inside *.description.value,
   // *.biography.value and *.text.text/content.
-  if (/(^|\\.)(description|biography|text)\\.(value|content|text)$/.test(lowerPath)) {
+  if (/(^|\.)(description|biography|text)\.(value|content|text)$/.test(lowerPath)) {
     return true;
   }
 
@@ -113,16 +114,14 @@ export class JsonEngine {
     const fields: DetectedField[] = [];
 
     const isUrlOrPath = (val: string): boolean => {
+      const normalized = val.trim();
+
+      // Do not treat HTML closing tags such as </p> as filesystem paths.
       return (
-        val.startsWith('http://') ||
-        val.startsWith('https://') ||
-        val.startsWith('data:') ||
-        val.endsWith('.png') ||
-        val.endsWith('.svg') ||
-        val.endsWith('.jpg') ||
-        val.endsWith('.webp') ||
-        val.includes('/') ||
-        val.includes('\\')
+        /^https?:\/\//i.test(normalized) ||
+        /^data:/i.test(normalized) ||
+        /^(?:\.\.?[\\/]|[A-Za-z]:[\\/]|\\\\)/.test(normalized) ||
+        /\.(?:png|svg|jpe?g|webp)$/i.test(normalized)
       );
     };
 

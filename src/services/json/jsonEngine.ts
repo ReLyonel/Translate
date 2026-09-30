@@ -162,6 +162,8 @@ export class JsonEngine {
           lowerPath.includes('_stats.') ||
           lowerPath.includes('ownership.') ||
           lowerPath.includes('permission.') ||
+          lowerPath.startsWith('mapping.') ||
+          lowerPath.startsWith('folders.') ||
           lowerPath.endsWith('.img') ||
           lowerPath.endsWith('.type') ||
           lowerPath.endsWith('._id')

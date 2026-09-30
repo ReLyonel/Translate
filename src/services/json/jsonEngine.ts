@@ -181,9 +181,6 @@ export class JsonEngine {
             lowerPath.endsWith('._id')
           )
         ) {
-          lowerPath.endsWith('.type') ||
-          lowerPath.endsWith('._id')
-        ) {
           fields.push({
             id: `f-${fields.length + 1}`,
             path: currentPath,

@@ -47,7 +47,7 @@ async function translateTexts(
 ) {
   const terms = terminology.map((term) => `- ${term.source || ''} => ${term.target || ''}`).join('\\n');
   const system = `Eres un traductor técnico local para Foundry VTT y D&D 2024. Traduce de ${sourceLanguage} a ${targetLanguage}. Conserva exactamente, sin modificar, eliminar, duplicar ni reordenar, todos los placeholders [[PROTECTED_###]]. Algunos placeholders representan etiquetas HTML, entidades HTML y referencias de Foundry: nunca intentes reconstruir, corregir ni estilizar esas etiquetas. Traduce únicamente el texto humano que queda fuera de los placeholders. La terminología es obligatoria. No expliques nada: devuelve exclusivamente un arreglo JSON de strings de igual tamaño y orden.`;
-  const user = `Contexto: ${context.docType || 'Foundry VTT'}; ${context.notes || ''}\\nTerminología:\\n${terms || '(ninguna)'}\\n\\nTextos:\\n${JSON.stringify(texts)}`;
+  const user = `Contexto: ${context.docType || 'Foundry VTT'}; ${context.notes || ''}\\nTerminología:\\n${terms || '(ninguna)'}\n\nTextos:\\n${JSON.stringify(texts)}`;
 
   const raw = await ollamaChat([
     { role: 'system', content: system },

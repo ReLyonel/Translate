@@ -5,7 +5,9 @@ export type MemoryEntryKind =
   | 'folder'
   | 'name-suffix'
   | 'babele-name'
-  | 'explicit-pair';
+  | 'explicit-pair'
+  | 'legacy-term'
+  | 'html-description';
 
 export interface MemoryEntry {
   source: string;
@@ -13,6 +15,7 @@ export interface MemoryEntry {
   file: string;
   kind: MemoryEntryKind;
   fieldPath?: string;
+  confidence: number;
 }
 
 export interface TranslationMemory {
@@ -38,11 +41,66 @@ const IGNORED_KEYS = new Set([
   'type',
 ]);
 
+const LEGACY_TERM_FIELDS = new Set([
+  'skills',
+  'abilities',
+  'actionType',
+  'activation',
+  'weaponType',
+  'equipmentType',
+  'damageTypes',
+  'spellSchools',
+  'languages',
+  'traits',
+  'tools',
+  'weaponProperties',
+]);
+
+const STANDARD_SHORT_KEYS = new Set([
+  'str',
+  'dex',
+  'con',
+  'int',
+  'wis',
+  'cha',
+  'acr',
+  'ani',
+  'arc',
+  'ath',
+  'dec',
+  'his',
+  'ins',
+  'itm',
+  'inv',
+  'med',
+  'nat',
+  'prc',
+  'prf',
+  'per',
+  'rel',
+  'slt',
+  'ste',
+  'sur',
+]);
+
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
-const cleanText = (value: string): string =>
+const hasCyrillic = (value: string): boolean =>
+  /[\u0400-\u04FF]/u.test(value);
+
+const hasInvalidControlCharacters = (value: string): boolean =>
+  value.includes('�') ||
+  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(value);
+
+const normalizeTerm = (value: string): string =>
   value.replace(/\s+/g, ' ').trim();
+
+const normalizeHtml = (value: string): string =>
+  value.trim();
+
+const hasNumericBonus = (value: string): boolean =>
+  /\s\+\d+$/u.test(value);
 
 const addPair = (
   entries: MemoryEntry[],
@@ -53,18 +111,31 @@ const addPair = (
   file: string,
   kind: MemoryEntryKind,
   fieldPath?: string,
-) => {
-  const cleanSource = cleanText(source);
-  const cleanTarget = cleanText(target);
+  confidence = 1,
+): void => {
+  const isHtml = kind === 'html-description';
+  const cleanSource = isHtml ? normalizeHtml(source) : normalizeTerm(source);
+  const cleanTarget = isHtml ? normalizeHtml(target) : normalizeTerm(target);
 
   if (!cleanSource || !cleanTarget || cleanSource === cleanTarget) return;
+
+  // The corpus is a Spanish memory. A Cyrillic target indicates an untranslated
+  // source leak and must never enter the active memory.
+  if (
+    hasInvalidControlCharacters(cleanSource) ||
+    hasInvalidControlCharacters(cleanTarget) ||
+    hasCyrillic(cleanTarget)
+  ) {
+    return;
+  }
 
   entries.push({
     source: cleanSource,
     target: cleanTarget,
-    file,
+    file: path.normalize(file),
     kind,
     fieldPath,
+    confidence,
   });
 
   const existing = terms.get(cleanSource) ?? new Set<string>();
@@ -76,15 +147,34 @@ const addPair = (
   }
 };
 
-const extractBracketSource = (value: string): { source: string; target: string } | null => {
-  const match = value.match(/^(.*?)\s+\[([^\[\]]+)\]\s*$/);
+const extractBracketSource = (
+  value: string,
+): { source: string; target: string } | null => {
+  const match = value.match(/^(.+?)\s+\[([^\[\]]+)\]\s*$/u);
   if (!match) return null;
 
-  const target = cleanText(match[1]);
-  const source = cleanText(match[2]);
+  const target = normalizeTerm(match[1]);
+  const source = normalizeTerm(match[2]);
 
-  if (!target || !source) return null;
+  if (!source || !target) return null;
+
+  // A translated +N item cannot be aligned to a bracket source that lacks +N.
+  if (!hasNumericBonus(source) && hasNumericBonus(target)) {
+    return null;
+  }
+
   return { source, target };
+};
+
+const getDescriptionValue = (value: unknown): string | null => {
+  if (!isObjectRecord(value)) return null;
+
+  const description = value.description;
+  if (!isObjectRecord(description)) return null;
+
+  return typeof description.value === 'string'
+    ? description.value
+    : null;
 };
 
 export class TranslationMemoryLoader {
@@ -102,8 +192,25 @@ export class TranslationMemoryLoader {
       conflicts,
     );
 
+    const unique = new Map<string, MemoryEntry>();
+
+    for (const entry of entries) {
+      const key = [
+        entry.source,
+        entry.target,
+        entry.kind,
+        entry.file,
+        entry.fieldPath ?? '',
+      ].join('\u0000');
+
+      const existing = unique.get(key);
+      if (!existing || entry.confidence > existing.confidence) {
+        unique.set(key, entry);
+      }
+    }
+
     return {
-      entries,
+      entries: Array.from(unique.values()),
       terms,
       conflicts,
     };
@@ -138,8 +245,6 @@ export class TranslationMemoryLoader {
     conflicts: Map<string, Set<string>>,
   ): Promise<void> {
     try {
-      // Explicit UTF-8 decoding is important because the corpus contains
-      // Russian source text and may be UTF-8 without a BOM.
       const raw = await fs.readFile(filePath, 'utf8');
       const json = JSON.parse(raw) as unknown;
 
@@ -153,7 +258,7 @@ export class TranslationMemoryLoader {
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       console.warn(
-        `[TranslationMemory] No se pudo leer ${filePath}: ${reason}`,
+        '[TranslationMemory] No se pudo leer ' + filePath + ': ' + reason,
       );
     }
   }
@@ -167,69 +272,55 @@ export class TranslationMemoryLoader {
   ): void {
     if (!isObjectRecord(json)) return;
 
-    // FifthPendium/Babele folder maps are direct source -> Spanish pairs.
     const folders = json.folders;
     if (isObjectRecord(folders)) {
       for (const [source, target] of Object.entries(folders)) {
-        if (typeof target === 'string') {
+        if (typeof target !== 'string') continue;
+
+        addPair(
+          entries,
+          terms,
+          conflicts,
+          source,
+          target,
+          filePath,
+          'folder',
+          'folders',
+          0.9,
+        );
+
+        const sourceBracket = extractBracketSource(source);
+        const targetBracket = extractBracketSource(target);
+
+        if (sourceBracket && targetBracket) {
           addPair(
             entries,
             terms,
             conflicts,
-            source,
-            target,
+            sourceBracket.source,
+            targetBracket.target,
             filePath,
-            'folder',
+            'name-suffix',
             'folders',
+            0.95,
           );
         }
       }
     }
 
-    // Babele-exported documents can carry the original name alongside the
-    // translated document name.
-    const babele = json.flags && isObjectRecord(json.flags)
-      ? json.flags.babele
-      : undefined;
+    const flags = json.flags;
+    const babele = isObjectRecord(flags) ? flags.babele : undefined;
 
     if (isObjectRecord(babele)) {
-      const translatedName = typeof json.name === 'string' ? json.name : undefined;
-      const originalName = typeof babele.originalName === 'string'
-        ? babele.originalName
-        : undefined;
-
-      if (translatedName && originalName) {
-        addPair(
-          entries,
-          terms,
-          conflicts,
-          originalName,
-          translatedName,
-          filePath,
-          'babele-name',
-          'name',
-        );
-      }
-
-      const originalPayload = babele.originalPayload;
-      if (isObjectRecord(originalPayload)) {
-        const payloadName = typeof originalPayload.name === 'string'
-          ? originalPayload.name
-          : undefined;
-
-        if (translatedName && payloadName) {
-          addPair(
-            entries,
-            terms,
-            conflicts,
-            payloadName,
-            translatedName,
-            filePath,
-            'babele-name',
-            'name',
-          );
-        }
-      }
+      this.extractBabelePairs(
+        json,
+        babele,
+        filePath,
+        'flags.babele',
+        entries,
+        terms,
+        conflicts,
+      );
     }
 
     const entriesNode = json.entries;
@@ -237,10 +328,10 @@ export class TranslationMemoryLoader {
       for (const [entryId, entryValue] of Object.entries(entriesNode)) {
         if (!isObjectRecord(entryValue)) continue;
 
-        this.extractEntry(
+        this.extractNamePairs(
           entryValue,
           filePath,
-          `entries.${entryId}`,
+          'entries.' + entryId,
           entries,
           terms,
           conflicts,
@@ -248,7 +339,15 @@ export class TranslationMemoryLoader {
       }
     }
 
-    // Some legacy JSON files are already explicit source -> target maps.
+    this.extractLegacyTerms(
+      json,
+      filePath,
+      '',
+      entries,
+      terms,
+      conflicts,
+    );
+
     this.extractExplicitPairs(
       json,
       filePath,
@@ -259,7 +358,108 @@ export class TranslationMemoryLoader {
     );
   }
 
-  private extractEntry(
+  private extractBabelePairs(
+    translated: Record<string, unknown>,
+    babele: Record<string, unknown>,
+    filePath: string,
+    fieldPath: string,
+    entries: MemoryEntry[],
+    terms: Map<string, Set<string>>,
+    conflicts: Map<string, Set<string>>,
+  ): void {
+    const translatedName =
+      typeof translated.name === 'string'
+        ? translated.name
+        : undefined;
+
+    if (
+      translatedName &&
+      typeof babele.originalName === 'string'
+    ) {
+      addPair(
+        entries,
+        terms,
+        conflicts,
+        babele.originalName,
+        translatedName,
+        filePath,
+        'babele-name',
+        fieldPath + '.originalName',
+        1,
+      );
+    }
+
+    let originalPayload = babele.originalPayload;
+
+    if (typeof originalPayload === 'string') {
+      try {
+        originalPayload = JSON.parse(originalPayload) as unknown;
+      } catch {
+        originalPayload = undefined;
+      }
+    }
+
+    if (!isObjectRecord(originalPayload)) return;
+
+    if (
+      translatedName &&
+      typeof originalPayload.name === 'string'
+    ) {
+      addPair(
+        entries,
+        terms,
+        conflicts,
+        originalPayload.name,
+        translatedName,
+        filePath,
+        'babele-name',
+        fieldPath + '.originalPayload.name',
+        1,
+      );
+    }
+
+    const originalDescription =
+      getDescriptionValue(originalPayload);
+
+    const translatedDescription =
+      getDescriptionValue(translated);
+
+    if (
+      originalDescription !== null &&
+      translatedDescription !== null
+    ) {
+      addPair(
+        entries,
+        terms,
+        conflicts,
+        originalDescription,
+        translatedDescription,
+        filePath,
+        'html-description',
+        fieldPath + '.originalPayload.system.description.value',
+        1,
+      );
+    }
+
+    if (
+      typeof originalPayload.description === 'string' &&
+      typeof translated.description === 'string'
+    ) {
+      addPair(
+        entries,
+        terms,
+        conflicts,
+        originalPayload.description,
+        translated.description,
+        filePath,
+        'html-description',
+        fieldPath + '.originalPayload.description',
+        1,
+      );
+    }
+  }
+
+  private extractNamePairs(
     entry: Record<string, unknown>,
     filePath: string,
     fieldPath: string,
@@ -267,7 +467,7 @@ export class TranslationMemoryLoader {
     terms: Map<string, Set<string>>,
     conflicts: Map<string, Set<string>>,
   ): void {
-    this.walkForNamePairs(
+    this.walkNames(
       entry,
       filePath,
       fieldPath,
@@ -277,7 +477,7 @@ export class TranslationMemoryLoader {
     );
   }
 
-  private walkForNamePairs(
+  private walkNames(
     value: unknown,
     filePath: string,
     fieldPath: string,
@@ -285,31 +485,120 @@ export class TranslationMemoryLoader {
     terms: Map<string, Set<string>>,
     conflicts: Map<string, Set<string>>,
   ): void {
+    if (Array.isArray(value)) {
+      value.forEach((child, index) => {
+        this.walkNames(
+          child,
+          filePath,
+          fieldPath + '[' + index + ']',
+          entries,
+          terms,
+          conflicts,
+        );
+      });
+      return;
+    }
+
     if (!isObjectRecord(value)) return;
 
     for (const [key, child] of Object.entries(value)) {
-      const nextPath = fieldPath ? `${fieldPath}.${key}` : key;
+      const nextPath = fieldPath
+        ? fieldPath + '.' + key
+        : key;
 
       if (IGNORED_KEYS.has(key)) continue;
 
       if (key === 'name' && typeof child === 'string') {
-        const bracketPair = extractBracketSource(child);
-        if (bracketPair) {
+        const pair = extractBracketSource(child);
+
+        if (pair) {
           addPair(
             entries,
             terms,
             conflicts,
-            bracketPair.source,
-            bracketPair.target,
+            pair.source,
+            pair.target,
             filePath,
             'name-suffix',
             nextPath,
+            0.95,
           );
         }
       }
 
       if (isObjectRecord(child) || Array.isArray(child)) {
-        this.walkForNamePairs(
+        this.walkNames(
+          child,
+          filePath,
+          nextPath,
+          entries,
+          terms,
+          conflicts,
+        );
+      }
+    }
+  }
+
+  private extractLegacyTerms(
+    value: unknown,
+    filePath: string,
+    fieldPath: string,
+    entries: MemoryEntry[],
+    terms: Map<string, Set<string>>,
+    conflicts: Map<string, Set<string>>,
+  ): void {
+    if (Array.isArray(value)) {
+      value.forEach((child, index) => {
+        this.extractLegacyTerms(
+          child,
+          filePath,
+          fieldPath + '[' + index + ']',
+          entries,
+          terms,
+          conflicts,
+        );
+      });
+      return;
+    }
+
+    if (!isObjectRecord(value)) return;
+
+    for (const [key, child] of Object.entries(value)) {
+      const nextPath = fieldPath
+        ? fieldPath + '.' + key
+        : key;
+
+      if (
+        LEGACY_TERM_FIELDS.has(key) &&
+        isObjectRecord(child)
+      ) {
+        for (const [source, target] of Object.entries(child)) {
+          if (typeof target !== 'string') continue;
+
+          const sourceIsShort =
+            STANDARD_SHORT_KEYS.has(source.toLowerCase());
+
+          if (source.length < 3 && !sourceIsShort) continue;
+
+          addPair(
+            entries,
+            terms,
+            conflicts,
+            source,
+            target,
+            filePath,
+            'legacy-term',
+            nextPath + '.' + source,
+            0.85,
+          );
+        }
+      }
+
+      if (
+        !IGNORED_KEYS.has(key) &&
+        (isObjectRecord(child) || Array.isArray(child))
+      ) {
+        this.extractLegacyTerms(
           child,
           filePath,
           nextPath,
@@ -334,7 +623,7 @@ export class TranslationMemoryLoader {
         this.extractExplicitPairs(
           child,
           filePath,
-          `${fieldPath}[${index}]`,
+          fieldPath + '[' + index + ']',
           entries,
           terms,
           conflicts,
@@ -358,23 +647,29 @@ export class TranslationMemoryLoader {
         filePath,
         'explicit-pair',
         fieldPath,
+        1,
       );
     }
 
     for (const [key, child] of Object.entries(value)) {
-      if (IGNORED_KEYS.has(key)) continue;
+      if (
+        IGNORED_KEYS.has(key) ||
+        key === 'source' ||
+        key === 'target'
+      ) {
+        continue;
+      }
 
-      // Avoid interpreting arbitrary Foundry objects as source/target maps.
-      if (key === 'source' || key === 'target') continue;
-
-      this.extractExplicitPairs(
-        child,
-        filePath,
-        fieldPath ? `${fieldPath}.${key}` : key,
-        entries,
-        terms,
-        conflicts,
-      );
+      if (isObjectRecord(child) || Array.isArray(child)) {
+        this.extractExplicitPairs(
+          child,
+          filePath,
+          fieldPath ? fieldPath + '.' + key : key,
+          entries,
+          terms,
+          conflicts,
+        );
+      }
     }
   }
 }

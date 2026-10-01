@@ -23,6 +23,7 @@ describe('Translation memory context', () => {
       'Saving Throw',
       'Spell Slot',
     ]);
+    expect(matches.some((entry) => entry.source === 'Spell')).toBe(false);
   });
 
   it('lets explicit terminology override historical memory', () => {

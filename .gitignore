@@ -9,3 +9,8 @@ __pycache__/
 !.env.example
 data/sources/pdf-index.json
 data/sources/corpus/*/
+
+# Local translation-memory corpus and generated indexes
+data/sources/translation-memory/fifthpendium-old-es/
+data/sources/translation-memory/generated/
+data/sources/projects/fifthpendium-es-2024/

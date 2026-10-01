@@ -267,24 +267,6 @@ export class TranslationMemoryLoader {
     terms: Map<string, Set<string>>,
     conflicts: Map<string, Set<string>>,
   ): void {
-    const name = typeof entry.name === 'string' ? entry.name : undefined;
-
-    if (name) {
-      const bracketPair = extractBracketSource(name);
-      if (bracketPair) {
-        addPair(
-          entries,
-          terms,
-          conflicts,
-          bracketPair.source,
-          bracketPair.target,
-          filePath,
-          'name-suffix',
-          `${fieldPath}.name`,
-        );
-      }
-    }
-
     this.walkForNamePairs(
       entry,
       filePath,

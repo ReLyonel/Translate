@@ -15,7 +15,8 @@
     "corpus:scan": "tsx scripts/corpus.ts scan",
     "corpus:extract": "tsx scripts/corpus.ts extract",
     "corpus:inspect": "tsx scripts/corpus.ts inspect",
-    "corpus:report": "tsx scripts/corpus.ts report"
+    "corpus:report": "tsx scripts/corpus.ts report",
+    "memory:build": "tsx scripts/buildTranslationMemory.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

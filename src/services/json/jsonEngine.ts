@@ -1,8 +1,58 @@
 import { DetectedField, JsonFieldClassification, JsonInspectionResult } from '../../types';
 
-// Fields that are explicitly translatable in Foundry VTT and Babele
-const isKnownTranslatablePath = (path: string) => /^(name|title|label)$/.test(path) ||
-  /^(system\.(description\.(value|chat)|activities(?:\[\d+\]|\.\d+)\.description\.(value|chatFlavor)|details\.biography\.value)|effects(?:\[\d+\]|\.\d+)\.(name|description)|pages(?:\[\d+\]|\.\d+)\.(name|text\.(content|text)))$/.test(path);
+// Human-readable Foundry/Babele fields. Matching is based on the final key
+// instead of a single hard-coded root path, so nested structures such as:
+// entries.<id>.description, activities.<id>.name, advancement.<id>.title
+// are handled without translating technical containers.
+const TRANSLATABLE_KEYS = new Set([
+  'name',
+  'title',
+  'label',
+  'description',
+  'chat',
+  'chatflavor',
+  'flavor',
+  'tooltip',
+  'caption',
+  'content',
+  'text',
+]);
+
+const PROTECTED_PATH_PREFIXES = [
+  'flags.',
+  '_stats.',
+  'ownership.',
+  'permission.',
+  'mapping.',
+  'folders.',
+];
+
+const TRANSLATABLE_PROTECTED_PATHS = new Set([
+  // Book/Journal navigation metadata that is visibly rendered to users.
+  'flags.dnd5e.title',
+]);
+
+const isKnownTranslatablePath = (path: string, keyName: string) => {
+  const lowerPath = path.toLowerCase();
+  const lowerKey = keyName.toLowerCase();
+
+  // Explicit visible Book/Journal metadata can live under flags.
+  if (TRANSLATABLE_PROTECTED_PATHS.has(lowerPath)) {
+    return true;
+  }
+
+  if (PROTECTED_PATH_PREFIXES.some((prefix) => lowerPath.startsWith(prefix))) {
+    return false;
+  }
+
+  // Foundry commonly stores prose inside *.description.value,
+  // *.biography.value and *.text.text/content.
+  if (/(^|\.)(description|biography|text)\.(value|content|text)$/.test(lowerPath)) {
+    return true;
+  }
+
+  return TRANSLATABLE_KEYS.has(lowerKey);
+};
 
 // Keys that are strictly technical and protected in Foundry VTT
 const PROTECTED_KEYS = new Set([
@@ -50,6 +100,8 @@ const PROTECTED_KEYS = new Set([
   'modifiedTime',
   'lastModifiedBy',
   'schemaVersion',
+  'converter',
+  'mapping',
 ]);
 
 export class JsonEngine {
@@ -62,16 +114,14 @@ export class JsonEngine {
     const fields: DetectedField[] = [];
 
     const isUrlOrPath = (val: string): boolean => {
+      const normalized = val.trim();
+
+      // Do not treat HTML closing tags such as </p> as filesystem paths.
       return (
-        val.startsWith('http://') ||
-        val.startsWith('https://') ||
-        val.startsWith('data:') ||
-        val.endsWith('.png') ||
-        val.endsWith('.svg') ||
-        val.endsWith('.jpg') ||
-        val.endsWith('.webp') ||
-        val.includes('/') ||
-        val.includes('\\')
+        /^https?:\/\//i.test(normalized) ||
+        /^data:/i.test(normalized) ||
+        /^(?:\.\.?[\\/]|[A-Za-z]:[\\/]|\\\\)/.test(normalized) ||
+        /\.(?:png|svg|jpe?g|webp)$/i.test(normalized)
       );
     };
 
@@ -112,17 +162,24 @@ export class JsonEngine {
         const lowerPath = currentPath.toLowerCase();
 
         // 1. Immediately Protected Check
+        const explicitlyTranslatablePath = TRANSLATABLE_PROTECTED_PATHS.has(lowerPath);
+
         if (
-          PROTECTED_KEYS.has(lowerKey) ||
-          isUrlOrPath(trimmed) ||
-          isInternalIdOrUuid(trimmed) ||
-          lowerPath.includes('flags.') ||
-          lowerPath.includes('_stats.') ||
-          lowerPath.includes('ownership.') ||
-          lowerPath.includes('permission.') ||
-          lowerPath.endsWith('.img') ||
-          lowerPath.endsWith('.type') ||
-          lowerPath.endsWith('._id')
+          !explicitlyTranslatablePath &&
+          (
+            PROTECTED_KEYS.has(lowerKey) ||
+            isUrlOrPath(trimmed) ||
+            isInternalIdOrUuid(trimmed) ||
+            lowerPath.includes('flags.') ||
+            lowerPath.includes('_stats.') ||
+            lowerPath.includes('ownership.') ||
+            lowerPath.includes('permission.') ||
+            lowerPath.startsWith('mapping.') ||
+            lowerPath.startsWith('folders.') ||
+            lowerPath.endsWith('.img') ||
+            lowerPath.endsWith('.type') ||
+            lowerPath.endsWith('._id')
+          )
         ) {
           fields.push({
             id: `f-${fields.length + 1}`,
@@ -136,7 +193,7 @@ export class JsonEngine {
         }
 
         // 2. High-Confidence Translatable Check
-        const isKnownPath = isKnownTranslatablePath(currentPath);
+        const isKnownPath = isKnownTranslatablePath(currentPath, keyName);
         const isDescription = lowerPath.includes('description.') || lowerPath.includes('biography.') || lowerPath.includes('.text.');
         const isNameOrTitle = /(?:^|\.)(name|title|label)$/.test(lowerPath);
 

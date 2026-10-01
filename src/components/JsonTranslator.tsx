@@ -236,6 +236,11 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
   const handleDownload = () => {
     if (!translatedJson || !inspection) return;
 
+    if (!validationReport?.isValid) {
+      alert('La traducción no se puede exportar porque la validación de Foundry ha detectado cambios estructurales o técnicos. Corrige los errores antes de descargar.');
+      return;
+    }
+
     // Generate filename with -es suffix: e.g. fvtt-Item.json -> fvtt-Item-es.json
     let newName = inspection.fileName;
     if (newName.endsWith('.json')) {

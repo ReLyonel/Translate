@@ -6,6 +6,28 @@ export interface MemoryTerm {
   target: string;
 }
 
+interface TextOccurrence {
+  start: number;
+  end: number;
+}
+
+function findOccurrences(text: string, needle: string): TextOccurrence[] {
+  if (!needle) return [];
+
+  const occurrences: TextOccurrence[] = [];
+  let startIndex = text.indexOf(needle);
+
+  while (startIndex !== -1) {
+    occurrences.push({
+      start: startIndex,
+      end: startIndex + needle.length,
+    });
+    startIndex = text.indexOf(needle, startIndex + 1);
+  }
+
+  return occurrences;
+}
+
 interface GeneratedMemoryPayload {
   terms?: Record<string, string>;
 }
@@ -74,7 +96,7 @@ export function findRelevantMemoryTerms(
 
   const haystacks = texts.map((text) => text.toLocaleLowerCase('es'));
 
-  return [...terms.entries()]
+  const candidates = [...terms.entries()]
     .filter(([source]) => {
       const normalized = source.toLocaleLowerCase('es');
       return haystacks.some((text) => text.includes(normalized));
@@ -82,9 +104,42 @@ export function findRelevantMemoryTerms(
     .sort((a, b) => {
       // Prefer longer phrases so "Saving Throw" wins over "Throw".
       return b[0].length - a[0].length;
-    })
-    .slice(0, maxTerms)
-    .map(([source, target]) => ({ source, target }));
+    });
+
+  const selected: Array<[string, string]> = [];
+
+  for (const candidate of candidates) {
+    if (selected.length >= maxTerms) break;
+
+    const normalizedCandidate = candidate[0].toLocaleLowerCase('es');
+    const candidateCoveredByLonger = haystacks.every((text) => {
+      const candidatePositions = findOccurrences(text, normalizedCandidate);
+
+      if (candidatePositions.length === 0) {
+        return true;
+      }
+
+      return candidatePositions.every(({ start, end }) =>
+        selected.some(([selectedSource]) => {
+          const normalizedSelected = selectedSource.toLocaleLowerCase('es');
+          if (normalizedSelected.length <= normalizedCandidate.length) {
+            return false;
+          }
+
+          return findOccurrences(text, normalizedSelected).some(
+            (occurrence) =>
+              occurrence.start <= start && occurrence.end >= end,
+          );
+        }),
+      );
+    });
+
+    if (!candidateCoveredByLonger) {
+      selected.push(candidate);
+    }
+  }
+
+  return selected.map(([source, target]) => ({ source, target }));
 }
 
 export function mergeTerminology(

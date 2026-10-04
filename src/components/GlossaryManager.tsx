@@ -159,15 +159,10 @@ export const GlossaryManager: React.FC<GlossaryManagerProps> = ({ onRefreshTerms
   };
 
   // Export JSON
-  const handleExportJson = () => {
+  const handleExportJson = async () => {
     const jsonStr = terminologyEngine.exportJson();
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dnd-translator-glossary-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try { await window.desktop.saveJson(jsonStr, `dnd-translator-glossary-${new Date().toISOString().split('T')[0]}.json`); }
+    catch { alert('No se pudo guardar el glosario. Selecciona un nombre nuevo.'); }
   };
 
   // Import JSON

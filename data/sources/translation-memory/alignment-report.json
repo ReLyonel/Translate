@@ -1,0 +1,17 @@
+{
+  "sourceDocument": "8974902d109d6e63",
+  "targetDocument": "9ecc1b980016b104",
+  "sourceSegments": 7650,
+  "targetSegments": 9868,
+  "candidates": 7650,
+  "confidence": {
+    "high": 89,
+    "medium": 888,
+    "low": 6673
+  },
+  "uniqueTargetCandidates": 4483,
+  "reusedTargets": 1733,
+  "approved": 0,
+  "review": 7650,
+  "note": "Candidates are never auto-approved. Review is required before translation memory."
+}

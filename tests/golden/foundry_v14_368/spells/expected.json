@@ -1,0 +1,11 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Ataque",
+  "type": "spell",
+  "system": {
+    "formula": "2d6+3",
+    "description": {
+      "value": "Ataque @UUID[Item.abcdefghijklmnop]"
+    }
+  }
+}

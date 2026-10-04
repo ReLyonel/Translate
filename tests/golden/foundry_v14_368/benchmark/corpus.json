@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {"id":"weapon-name","en":"Longsword","ru":"Длинный меч","reference":"Espada larga","field":"name"},
+    {"id":"actor-name","en":"Vampire","ru":"Вампир","reference":"Vampiro","field":"name"},
+    {"id":"rule","en":"Make a saving throw against the target's spell.","ru":"Совершите спасбросок против заклинания цели.","reference":"Realiza una tirada de salvación contra el conjuro del objetivo.","field":"description.value"},
+    {"id":"enriched-spell","en":"<p>Make an attack roll against @UUID[Item.target] and roll [[/r 1d20+5]].</p>","ru":"<p>Совершите бросок атаки против @UUID[Item.target] и бросьте [[/r 1d20+5]].</p>","reference":"<p>Realiza una tirada de ataque contra @UUID[Item.target] y tira [[/r 1d20+5]].</p>","field":"description.value"},
+    {"id":"journal","en":"The ancient forest falls silent as you approach the abandoned tower.","ru":"Древний лес затихает, когда вы приближаетесь к заброшенной башне.","reference":"El antiguo bosque queda en silencio al acercaros a la torre abandonada.","field":"description.value"},
+    {"id":"dialogue","en":"Will you help us defend the village?","ru":"Поможете ли вы нам защитить деревню?","reference":"¿Nos ayudaréis a defender la aldea?","field":"description.value"}
+  ]
+}

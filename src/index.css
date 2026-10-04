@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+@theme { --font-sans: "Segoe UI", system-ui, sans-serif; --font-serif: "Segoe UI", system-ui, sans-serif; --font-mono: "Cascadia Code", Consolas, monospace; }
+:root { color-scheme: dark; font-family: "Segoe UI", system-ui, sans-serif; }
+body { margin: 0; background: #0d121b; color: #e2e8f0; font-size: 13px; }
+button, select { cursor: pointer; } button:disabled { cursor: wait; opacity: .55; }
+button, input, select, textarea { transition: background .15s, border-color .15s, box-shadow .15s; }
+:focus-visible { outline: 2px solid #5eead4; outline-offset: 3px; }
+::-webkit-scrollbar { width: 7px; height: 7px; } ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9px; }
+::selection { background: #115e59; color: #ccfbf1; }
+.desktop-shell { display: flex; height: 100vh; overflow: hidden; }
+.app-sidebar { width: 212px; flex-shrink: 0; background: #111824; border-right: 1px solid #202c3b; padding: 22px 12px 14px; display: flex; flex-direction: column; }
+.app-brand { display: flex; gap: 10px; align-items: center; padding: 0 6px 30px; }
+.app-brand strong { font-size: 14px; letter-spacing: -.3px; white-space: nowrap; }
+.app-brand small { display: block; font-size: 10px; color: #8190a5; margin-top: 4px; }
+.brand-icon { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px; background: #153c3b; color: #5eead4; }
+.sidebar-label { color: #65748b; font-size: 9px; letter-spacing: 1.2px; padding: 0 12px; margin-bottom: 12px; }
+.nav-item { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; padding: 11px 12px; margin-bottom: 4px; border-radius: 9px; color: #94a3b8; font-size: 12px; }
+.nav-item span { flex: 1; }.nav-item:hover { background: #1a2432; color: #e2e8f0; }.nav-item.active { background: #16332f; color: #99f6e4; font-weight: 600; }
+.sidebar-bottom { margin-top: auto; padding: 12px 6px 0; border-top: 1px solid #202c3b; }
+.local-status { display: flex; align-items: center; gap: 7px; font-size: 10px; color: #a7b5c6; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; }.status-dot.connected { background: #34d399; }
+.sidebar-stat { display: flex; align-items: center; gap: 7px; margin-top: 13px; color: #8190a5; font-size: 10px; text-align: left; }
+.sidebar-note { display: flex; gap: 7px; color: #65748b; font-size: 10px; line-height: 1.6; margin: 18px 0 0; }
+.workspace { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.workspace-bar { height: 48px; min-height: 48px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #202c3b; padding: 0 24px; font-weight: 600; font-size: 12px; }
+.workspace-badge { font-size: 10px; font-weight: 400; color: #8190a5; }
+.workspace-content { flex: 1; overflow: auto; }.workspace-content > div { padding: 22px 24px; max-width: 1180px; margin-inline: auto; }
+.workspace-footer { display: flex; justify-content: space-between; padding: 8px 24px; border-top: 1px solid #202c3b; color: #65748b; font-size: 9px; }
+.page-title { font-size: 23px; font-weight: 600; letter-spacing: -.65px; }.page-subtitle { margin-top: 5px; color: #94a3b8; font-size: 12px; line-height: 1.6; }
+.primary-action { background: #2dd4bf; color: #062f2b; border: 1px solid #2dd4bf; border-radius: 8px; padding: 9px 14px; font-weight: 600; display: inline-flex; gap: 8px; align-items: center; font-size: 12px; }.primary-action:hover { background: #5eead4; }
+.secondary-action { background: #1a2534; color: #cbd5e1; border: 1px solid #334155; border-radius: 8px; padding: 9px 14px; display: inline-flex; gap: 8px; align-items: center; font-size: 12px; }.secondary-action:hover { background: #253346; }
+.selection-panel { background: #141d2b; border: 1px solid #263346; border-radius: 12px; padding: 18px; }
+.empty-guide { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; padding: 24px 0; }.guide-step { padding: 16px; border: 1px solid #202c3b; border-radius: 10px; background: #111925; }.guide-step span { display: block; color: #5eead4; font-size: 10px; margin-bottom: 9px; }.guide-step strong { font-size: 12px; font-weight: 500; }.guide-step p { color: #8190a5; font-size: 11px; line-height: 1.6; margin-top: 6px; }
+@media (max-width: 1000px) { .app-sidebar { width: 180px; }.app-brand strong { font-size: 12px; }.workspace-content > div { padding: 18px; }.workspace-bar { padding-inline: 18px; } }

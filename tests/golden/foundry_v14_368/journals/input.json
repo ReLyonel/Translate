@@ -1,0 +1,14 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Attack",
+  "pages": [
+    {
+      "_id": "qrstuvwxyzABCDEF",
+      "name": "Sword",
+      "text": {
+        "content": "<p class=\"rule\">Attack</p>",
+        "format": 1
+      }
+    }
+  ]
+}

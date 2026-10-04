@@ -1,0 +1,15 @@
+import {expect,it,vi,afterEach} from 'vitest';import {parseNvidia,thermalState,ThermalGuard,type GpuSample} from '../../desktop/thermal';
+afterEach(()=>vi.restoreAllMocks());
+const sample=(gpu=60,memory:number|null=null):GpuSample=>({available:true,timestamp:'test',gpus:[{name:'GPU',utilization:80,temperature:gpu,memory_temperature:memory,vram_used:17000,vram_total:24576,power_draw:250,limits:{}}]});
+it('reads telemetry without inventing unsupported memory temperature',()=>{
+ const value=parseNvidia('<gpu id="0"><product_name>RTX</product_name><gpu_temp>60 C</gpu_temp><memory_temp>N/A</memory_temp><gpu_util>90 %</gpu_util><fb_memory_usage><used>17000 MiB</used><total>24576 MiB</total></fb_memory_usage><instant_power_draw>250 W</instant_power_draw><gpu_temp_slow_threshold>95 C</gpu_temp_slow_threshold></gpu>');expect(value.gpus[0]).toMatchObject({temperature:60,memory_temperature:null,vram_used:17000,power_draw:250});expect(thermalState(value)).toBe('NORMAL');
+});
+it('distinguishes warning, pause, unsupported and driver limits',()=>{expect(thermalState(sample(81))).toBe('THERMAL_WARNING');expect(thermalState(sample(86))).toBe('THERMAL_PAUSE');expect(thermalState(sample(60,100))).toBe('THERMAL_PAUSE');expect(thermalState({...sample(),available:false,gpus:[]})).toBe('NORMAL');const s=sample(78);s.gpus[0].limits.gpu_temp_slow_threshold=77;expect(thermalState(s)).toBe('THERMAL_PAUSE');});
+it('aborts active inference, waits for three cool observations and safely retries',async()=>{
+ let current=sample();const guard=new ThermalGuard(async()=>current);await guard.poll();let attempts=0;
+ const work=guard.execute(signal=>{attempts++;return attempts===1?new Promise<string>((_,reject)=>signal.addEventListener('abort',()=>reject(signal.reason),{once:true})):Promise.resolve('valid');});
+ await new Promise(resolve=>setTimeout(resolve,5));current=sample(60,101);await guard.poll();expect(guard.state).toBe('THERMAL_PAUSE');expect(attempts).toBe(1);current=sample(60,70);await guard.poll();await guard.poll();expect(guard.state).toBe('THERMAL_PAUSE');await guard.poll();expect(await work).toBe('valid');expect(attempts).toBe(2);expect(guard.pauses).toBe(1);
+});
+it('does not resume when a previously available memory sensor disappears',async()=>{let current=sample(60,101);const guard=new ThermalGuard(async()=>current);await guard.poll();current=sample(60,null);for(let i=0;i<4;i++)await guard.poll();expect(guard.state).toBe('THERMAL_PAUSE');});
+it('cancels a thermal wait without inference or timer leakage',async()=>{const guard=new ThermalGuard(async()=>sample(90));await guard.poll();const controller=new AbortController(),action=vi.fn();const promise=guard.execute(action,controller.signal);controller.abort();await expect(promise).rejects.toThrow();expect(action).not.toHaveBeenCalled();guard.stop();});
+it('optional disabled monitoring does not execute hardware commands',async()=>{const observer=vi.fn();const guard=new ThermalGuard(observer,{enabled:false,gpu_warning:80,gpu_pause:85,memory_warning:90,memory_pause:96,hysteresis:5,poll_ms:5000});await guard.poll();expect(observer).not.toHaveBeenCalled();});

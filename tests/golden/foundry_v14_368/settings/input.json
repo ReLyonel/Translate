@@ -1,0 +1,7 @@
+{
+  "name": "Attack",
+  "hint": "Sword",
+  "scope": "world",
+  "key": "attackMode",
+  "default": false
+}

@@ -1,0 +1,6 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Ataque",
+  "type": "script",
+  "command": "ui.notifications.info(\"Attack\");"
+}

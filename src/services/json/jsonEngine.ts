@@ -1,6 +1,7 @@
+import { parseJsonStrict } from './strictJson';
 import { DetectedField, JsonFieldClassification, JsonInspectionResult } from '../../types';
 
-// Human-readable Foundry/Babele fields. Matching is based on the final key
+// Human-readable fields in native Foundry sources. Matching is based on the final key
 // instead of a single hard-coded root path, so nested structures such as:
 // entries.<id>.description, activities.<id>.name, advancement.<id>.title
 // are handled without translating technical containers.
@@ -102,13 +103,17 @@ const PROTECTED_KEYS = new Set([
   'schemaVersion',
   'converter',
   'mapping',
-]);
+  'command', 'script', 'expression', 'key', 'scope', 'path', 'url', 'src',
+  'changes', 'validation', 'schema', 'dependencies', 'relationships', 'compatibility',
+].map(key=>key.toLowerCase()));
 
 export class JsonEngine {
+  public static parse(source: string): any { return parseJsonStrict(source); }
   /**
    * Deeply analyzes a JSON object or array, categorizing all strings.
    */
   public static analyze(json: any, fileName = 'document.json'): JsonInspectionResult {
+    const isManifest = json && !Array.isArray(json) && typeof json.id === 'string' && ['packs', 'languages', 'compatibility'].some(key => Object.hasOwn(json,key));
     let totalObjects = 0;
     let totalStrings = 0;
     const fields: DetectedField[] = [];
@@ -131,11 +136,11 @@ export class JsonEngine {
       // Standard UUID
       if (/^[0-9a-fA-F-]{36}$/.test(val)) return true;
       // Compendium pack UUID
-      if (val.startsWith('Compendium.') || val.startsWith('Item.') || val.startsWith('Actor.')) return true;
+      if (/^(?:Compendium|Item|Actor|JournalEntry|RollTable|Scene|Macro|JournalEntryPage|Playlist|Token)\./.test(val)) return true;
       return false;
     };
 
-    const walk = (current: any, currentPath: string, keyName: string) => {
+    const walk = (current: any, currentPath: string, keyName: string, segments: (string | number)[]) => {
       if (current === null || current === undefined) {
         return;
       }
@@ -144,12 +149,12 @@ export class JsonEngine {
         totalObjects++;
         if (Array.isArray(current)) {
           current.forEach((item, index) => {
-            walk(item, `${currentPath}[${index}]`, keyName);
+            walk(item, `${currentPath}[${index}]`, keyName, [...segments, index]);
           });
         } else {
           for (const [key, value] of Object.entries(current)) {
             const nextPath = currentPath ? `${currentPath}.${key}` : key;
-            walk(value, nextPath, key);
+            walk(value, nextPath, key, [...segments, key]);
           }
         }
         return;
@@ -161,6 +166,15 @@ export class JsonEngine {
         const lowerKey = keyName.toLowerCase();
         const lowerPath = currentPath.toLowerCase();
 
+        const protectedAncestor=segments.slice(0,-1).some(segment=>typeof segment==='string' && PROTECTED_KEYS.has(segment.toLowerCase()));
+        if(protectedAncestor && !TRANSLATABLE_PROTECTED_PATHS.has(lowerPath)) {
+          fields.push({id:`f-${fields.length+1}`,path:currentPath,pathSegments:[...segments],originalValue:current,classification:'PROTECTED',reason:'Contenedor tecnico: conservar original.',userInclude:false});return;
+        }
+
+        if (segments.some(segment => typeof segment === 'string' && /[.\[\]]/.test(segment))) {
+          fields.push({id: `f-${fields.length+1}`, path: currentPath, pathSegments: [...segments], originalValue:current, classification:'UNCERTAIN', reason:'Ubicacion no estandar; conservar original.', userInclude:false}); return;
+        }
+        if (isManifest) { fields.push({id:`f-${fields.length+1}`, path:currentPath, pathSegments:[...segments], originalValue:current, classification:'PROTECTED', reason:'Manifiesto: conservar hasta publicacion nativa validada.', userInclude:false}); return; }
         // 1. Immediately Protected Check
         const explicitlyTranslatablePath = TRANSLATABLE_PROTECTED_PATHS.has(lowerPath);
 
@@ -184,6 +198,7 @@ export class JsonEngine {
           fields.push({
             id: `f-${fields.length + 1}`,
             path: currentPath,
+            pathSegments: [...segments],
             originalValue: current,
             classification: 'PROTECTED',
             reason: `Campo técnico del sistema (${keyName})`,
@@ -201,6 +216,7 @@ export class JsonEngine {
           fields.push({
             id: `f-${fields.length + 1}`,
             path: currentPath,
+            pathSegments: [...segments],
             originalValue: current,
             classification: 'TRANSLATABLE',
             reason: isDescription ? 'Ruta documentada de contenido narrativo' : isNameOrTitle ? 'Ruta documentada de nombre/título' : 'Ruta documentada',
@@ -214,6 +230,7 @@ export class JsonEngine {
           fields.push({
             id: `f-${fields.length + 1}`,
             path: currentPath,
+            pathSegments: [...segments],
             originalValue: current,
             classification: 'UNCERTAIN',
             reason: `Texto con espacios en clave no estándar "${keyName}"`,
@@ -226,6 +243,7 @@ export class JsonEngine {
         fields.push({
           id: `f-${fields.length + 1}`,
           path: currentPath,
+          pathSegments: [...segments],
           originalValue: current,
           classification: 'PROTECTED',
           reason: 'Valor escalar técnico no humano',
@@ -234,7 +252,7 @@ export class JsonEngine {
       }
     };
 
-    walk(json, '', '');
+    walk(json, '', '', []);
 
     const translatableCount = fields.filter((f) => f.classification === 'TRANSLATABLE').length;
     const protectedCount = fields.filter((f) => f.classification === 'PROTECTED').length;
@@ -261,38 +279,29 @@ export class JsonEngine {
    * Clones the original JSON and updates ONLY the specified paths with their translated values.
    * Guarantees 100% structural preservation: every key, order, array, and protected value remains exact.
    */
-  public static reconstruct(originalJson: any, translatedFields: { path: string; value: string }[]): any {
+  public static reconstruct(originalJson: any, translatedFields: { path: string; value: string; pathSegments?: (string | number)[] }[]): any {
     // Deep clone
     const cloned = JSON.parse(JSON.stringify(originalJson));
 
+    const fields = this.analyze(originalJson).fields;
     for (const item of translatedFields) {
-      this.setValueAtPath(cloned, item.path, item.value);
+      const matches = fields.filter(field => field.path === item.path);
+      const segments = item.pathSegments || (matches.length === 1 ? matches[0].pathSegments : undefined);
+      if (!segments || !segments.length) throw new Error('Ubicacion JSON ambigua o inexistente.');
+      this.setValueAtPath(cloned, segments, item.value);
     }
 
     return cloned;
   }
 
-  private static setValueAtPath(obj: any, path: string, value: string) {
-    if (!path) return;
-
-    // Parse path segments, e.g. "system.description.value" or "pages[0].text.content"
-    const segments = path
-      .replace(/\[(\d+)\]/g, '.$1')
-      .split('.')
-      .filter(Boolean);
-
+  private static setValueAtPath(obj: any, segments: (string | number)[], value: string) {
     let current = obj;
-    for (let i = 0; i < segments.length - 1; i++) {
-      const seg = segments[i];
-      if (current[seg] === undefined || current[seg] === null) {
-        return; // Path does not exist in target
-      }
-      current = current[seg];
+    for (const segment of segments.slice(0,-1)) {
+      if (!current || typeof current !== 'object' || !Object.hasOwn(current,segment)) throw new Error('Ubicacion JSON inexistente.');
+      current = current[segment];
     }
-
-    const lastSeg = segments[segments.length - 1];
-    if (current && typeof current === 'object' && lastSeg in current) {
-      current[lastSeg] = value;
-    }
+    const last = segments.at(-1)!;
+    if (!current || typeof current !== 'object' || !Object.hasOwn(current,last) || typeof current[last] !== 'string') throw new Error('Campo JSON no traducible.');
+    current[last] = value;
   }
 }

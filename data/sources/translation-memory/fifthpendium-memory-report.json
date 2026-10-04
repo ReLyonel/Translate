@@ -1,0 +1,1804 @@
+{
+  "source": "C:\\Dev\\Translate\\data\\sources\\translation-memory\\fifthpendium-old-es",
+  "generatedAt": "2026-10-01T18:53:39.838Z",
+  "stats": {
+    "rawEntries": 4398,
+    "uniqueEntries": 3354,
+    "rejectedEntries": 0,
+    "conflicts": 242,
+    "byKind": {
+      "folder": 607,
+      "name-suffix": 2746,
+      "legacy-term": 1
+    }
+  },
+  "conflicts": [
+    {
+      "source": "Aid",
+      "targets": [
+        "Auxilio",
+        "Ayuda"
+      ]
+    },
+    {
+      "source": "Alter Self",
+      "targets": [
+        "Alterar Forma Propia",
+        "Alterar el Propio Aspecto",
+        "Alterar el Propio Rasgo",
+        "Alterar el propio aspecto",
+        "Alterar el propio cuerpo"
+      ]
+    },
+    {
+      "source": "Animal Friendship",
+      "targets": [
+        "Amistad con los Animales",
+        "Amistad con los animales"
+      ]
+    },
+    {
+      "source": "Animal Messenger",
+      "targets": [
+        "Animal Mensajero",
+        "Animal mensajero"
+      ]
+    },
+    {
+      "source": "Animal Shapes",
+      "targets": [
+        "Formas animales",
+        "Formas de Animales"
+      ]
+    },
+    {
+      "source": "Animate Dead",
+      "targets": [
+        "Animar a los Muertos",
+        "Animar a los muertos"
+      ]
+    },
+    {
+      "source": "Antimagic Field",
+      "targets": [
+        "Campo Antimagia",
+        "Campo de antimagia"
+      ]
+    },
+    {
+      "source": "Arcane Eye",
+      "targets": [
+        "Ojo Arcano",
+        "Ojo arcano"
+      ]
+    },
+    {
+      "source": "Arcane Lock",
+      "targets": [
+        "Cerradura Arcana",
+        "Cerradura arcana"
+      ]
+    },
+    {
+      "source": "Astarion's Book of Hungers",
+      "targets": [
+        "El Libro de las Hambres de Astarion",
+        "El libro de las hambres de Astarion"
+      ]
+    },
+    {
+      "source": "Augury",
+      "targets": [
+        "Agüero",
+        "Augurio"
+      ]
+    },
+    {
+      "source": "Axe of the Galloping Headsman",
+      "targets": [
+        "Hacha del Verdugo Galopante +1",
+        "Hacha del Verdugo Galopante +2",
+        "Hacha del Verdugo Galopante +3"
+      ]
+    },
+    {
+      "source": "Banishing Smite",
+      "targets": [
+        "Castigo Desterrador",
+        "Castigo Expulsor"
+      ]
+    },
+    {
+      "source": "Befuddlement",
+      "targets": [
+        "Atolondramiento",
+        "Aturdimiento"
+      ]
+    },
+    {
+      "source": "Bestow Curse",
+      "targets": [
+        "Imponer Maldición",
+        "Maldecir",
+        "Maldición"
+      ]
+    },
+    {
+      "source": "Blade Ward",
+      "targets": [
+        "Protección contra Armas",
+        "Resguardo de Cuchillas"
+      ]
+    },
+    {
+      "source": "Bless",
+      "targets": [
+        "Bendecir",
+        "Bendición"
+      ]
+    },
+    {
+      "source": "Blindness/deafness",
+      "targets": [
+        "Ceguera/Sordera",
+        "Ceguera/sordera"
+      ]
+    },
+    {
+      "source": "Blunderbuss of the Grinning Sinner",
+      "targets": [
+        "Trabuco del Pecador Sonriente +1",
+        "Trabuco del Pecador Sonriente +2",
+        "Trabuco del Pecador Sonriente +3"
+      ]
+    },
+    {
+      "source": "Blur",
+      "targets": [
+        "Desenfocar",
+        "Imagen Borrosa"
+      ]
+    },
+    {
+      "source": "Burning Hands",
+      "targets": [
+        "Manos Ardientes",
+        "Manos ardientes"
+      ]
+    },
+    {
+      "source": "Calm Emotions",
+      "targets": [
+        "Calmar Emociones",
+        "Calmar emociones"
+      ]
+    },
+    {
+      "source": "Cane of Phillip Druskenvald",
+      "targets": [
+        "Bastón de Phillip Druskenvald +1",
+        "Bastón de Phillip Druskenvald +2",
+        "Bastón de Phillip Druskenvald +3"
+      ]
+    },
+    {
+      "source": "Cauldron of the Vermintoll Coven",
+      "targets": [
+        "Caldero del Aquelarre de las Plagas +2",
+        "Caldero del Aquelarre de las Plagas +3",
+        "Caldero del Coven Vermintoll +1"
+      ]
+    },
+    {
+      "source": "Chain Lightning",
+      "targets": [
+        "Relámpago en Cadena",
+        "Relámpago en cadena"
+      ]
+    },
+    {
+      "source": "Charm Monster",
+      "targets": [
+        "Hechizar Monstruo",
+        "Hechizar monstruo"
+      ]
+    },
+    {
+      "source": "Charm Person",
+      "targets": [
+        "Hechizar Persona",
+        "Hechizar persona",
+        "Persona encantadora",
+        "Personaje encantado"
+      ]
+    },
+    {
+      "source": "Circle of Death",
+      "targets": [
+        "Círculo de Muerte",
+        "Círculo de muerte"
+      ]
+    },
+    {
+      "source": "Clairvoyance",
+      "targets": [
+        "Clariaudiencia/Clarividencia",
+        "Clarividencia"
+      ]
+    },
+    {
+      "source": "Cloudkill",
+      "targets": [
+        "Nube Aniquiladora",
+        "Nube Incendiaria",
+        "Nube aniquiladora",
+        "Nube de Muerte",
+        "Nube de muerte"
+      ]
+    },
+    {
+      "source": "Command",
+      "targets": [
+        "Orden",
+        "Orden Imperiosa",
+        "Orden imperiosa",
+        "Sugestión"
+      ]
+    },
+    {
+      "source": "Commune",
+      "targets": [
+        "Comulgar",
+        "Comunión"
+      ]
+    },
+    {
+      "source": "Comprehend Languages",
+      "targets": [
+        "Comprender idiomas",
+        "Comprensión de Idiomas"
+      ]
+    },
+    {
+      "source": "Cone of Cold",
+      "targets": [
+        "Cono de Frío",
+        "Cono de frío"
+      ]
+    },
+    {
+      "source": "Conjure Fey",
+      "targets": [
+        "Conjurar Fey",
+        "Conjurar ser feérico"
+      ]
+    },
+    {
+      "source": "Contact Other Plane",
+      "targets": [
+        "Contactar con otro Plano",
+        "Contactar con otro plano"
+      ]
+    },
+    {
+      "source": "Control Water",
+      "targets": [
+        "Controlar el Agua",
+        "Controlar el agua"
+      ]
+    },
+    {
+      "source": "Control Weather",
+      "targets": [
+        "Controlar el Clima",
+        "Controlar el clima"
+      ]
+    },
+    {
+      "source": "Counterspell",
+      "targets": [
+        "Contraconjuro",
+        "Contrahechizo"
+      ]
+    },
+    {
+      "source": "Create Food And Water",
+      "targets": [
+        "Crear Comida y Agua",
+        "Crear comida y agua"
+      ]
+    },
+    {
+      "source": "Create Or Destroy Water",
+      "targets": [
+        "Crear o Destruir Agua",
+        "Crear o destruir agua"
+      ]
+    },
+    {
+      "source": "Create Undead",
+      "targets": [
+        "Crear Muertos Vivientes",
+        "Crear necrófago",
+        "Crear no muertos"
+      ]
+    },
+    {
+      "source": "Crown of Madness",
+      "targets": [
+        "Corona de Locura",
+        "Corona de locura"
+      ]
+    },
+    {
+      "source": "Crown of the Barrow King",
+      "targets": [
+        "Corona del Rey de los Túmulos +2",
+        "Corona del Rey de los Túmulos +3",
+        "Corona del Rey del Túmulo +1"
+      ]
+    },
+    {
+      "source": "Cure Wounds",
+      "targets": [
+        "Curar Heridas",
+        "Curar heridas"
+      ]
+    },
+    {
+      "source": "Cutlass of Briggsy Kratch",
+      "targets": [
+        "Sable de Briggsy Kratch +1",
+        "Sable de Briggsy Kratch +2",
+        "Sable de Briggsy Kratch +3"
+      ]
+    },
+    {
+      "source": "Dancing Lights",
+      "targets": [
+        "Luces Danzantes",
+        "Luces danzantes"
+      ]
+    },
+    {
+      "source": "Dancing Sword",
+      "targets": [
+        "Espada danzante",
+        "Espada danzarina"
+      ]
+    },
+    {
+      "source": "Darkvision",
+      "targets": [
+        "Visión en la Oscuridad",
+        "Visión en la oscuridad"
+      ]
+    },
+    {
+      "source": "Destructive Wave",
+      "targets": [
+        "Ola Destructiva",
+        "Ola destructiva"
+      ]
+    },
+    {
+      "source": "Detect Evil And Good",
+      "targets": [
+        "Detectar el Bien y el Mal",
+        "Detectar el bien y el mal"
+      ]
+    },
+    {
+      "source": "Detect Magic",
+      "targets": [
+        "Detectar Magia",
+        "Detectar magia"
+      ]
+    },
+    {
+      "source": "Detect Thoughts",
+      "targets": [
+        "Detectar Pensamientos",
+        "Detectar pensamientos"
+      ]
+    },
+    {
+      "source": "Dimension Door",
+      "targets": [
+        "Puerta Dimensional",
+        "Puerta dimensional"
+      ]
+    },
+    {
+      "source": "Dispel Evil And Good",
+      "targets": [
+        "Disipar el Bien y el Mal",
+        "Disipar el bien y el mal"
+      ]
+    },
+    {
+      "source": "Dispel Magic",
+      "targets": [
+        "Disipar Magia",
+        "Disipar magia"
+      ]
+    },
+    {
+      "source": "Dominate Beast",
+      "targets": [
+        "Dominar Bestia",
+        "Dominar bestia"
+      ]
+    },
+    {
+      "source": "Dominate Monster",
+      "targets": [
+        "Dominar Monstruo",
+        "Dominar monstruo"
+      ]
+    },
+    {
+      "source": "Dominate Person",
+      "targets": [
+        "Dominar Persona",
+        "Dominar persona"
+      ]
+    },
+    {
+      "source": "Dream",
+      "targets": [
+        "Soñar",
+        "Sueño"
+      ]
+    },
+    {
+      "source": "Druidcraft",
+      "targets": [
+        "Artesanía de druida",
+        "Artesanía druídica",
+        "Artificios Druídicos",
+        "Artificios de druida",
+        "Artífice de Druida",
+        "Artífice de la naturaleza"
+      ]
+    },
+    {
+      "source": "Eberron: Forge of the Artificer",
+      "targets": [
+        "Eberron: Forja del Artífice",
+        "Eberron: La Forja del Artífice",
+        "Eberron: La forja del artífice"
+      ]
+    },
+    {
+      "source": "Elemental Adept",
+      "targets": [
+        "Adepto Elemental",
+        "Adepto Elemental (Fuego)"
+      ]
+    },
+    {
+      "source": "Enemies Abound",
+      "targets": [
+        "Abundancia de enemigos",
+        "Enemigos por doquier"
+      ]
+    },
+    {
+      "source": "Energy cell",
+      "targets": [
+        "Batería",
+        "Célula de energía"
+      ]
+    },
+    {
+      "source": "Entangle",
+      "targets": [
+        "Entorpecer",
+        "Entrar en Discordia",
+        "Entrelazar",
+        "Entretener"
+      ]
+    },
+    {
+      "source": "Etherealness",
+      "targets": [
+        "Etereidad",
+        "Etéreo",
+        "Forma etérea"
+      ]
+    },
+    {
+      "source": "Eye of the White Worm",
+      "targets": [
+        "Ojo del Gusano Blanco +1",
+        "Ojo del Gusano Blanco +2",
+        "Ojo del Gusano Blanco +3"
+      ]
+    },
+    {
+      "source": "Faerie Fire",
+      "targets": [
+        "Fuego Feérico",
+        "Fuego feérico"
+      ]
+    },
+    {
+      "source": "Feather Fall",
+      "targets": [
+        "Caída de Pluma",
+        "Caída de pluma"
+      ]
+    },
+    {
+      "source": "Find Familiar",
+      "targets": [
+        "Encontrar Familiar",
+        "Encontrar familiar"
+      ]
+    },
+    {
+      "source": "Find Traps",
+      "targets": [
+        "Buscar Trampas",
+        "Buscar trampas"
+      ]
+    },
+    {
+      "source": "Fine Clothes",
+      "targets": [
+        "Ropa excelente",
+        "Ropa fina"
+      ]
+    },
+    {
+      "source": "Finger of Death",
+      "targets": [
+        "Dedo de la Muerte",
+        "Dedo de la muerte"
+      ]
+    },
+    {
+      "source": "Fireball",
+      "targets": [
+        "Bola de Fuego",
+        "Bola de fuego"
+      ]
+    },
+    {
+      "source": "Flame Strike",
+      "targets": [
+        "Columna de fuego",
+        "Golpe Flamígero",
+        "Golpe flamígero"
+      ]
+    },
+    {
+      "source": "Flaming Sphere",
+      "targets": [
+        "Esfera Flamígera",
+        "Esfera flamígera"
+      ]
+    },
+    {
+      "source": "Flare",
+      "targets": [
+        "Bengala",
+        "Bengala de señalización"
+      ]
+    },
+    {
+      "source": "Fog Cloud",
+      "targets": [
+        "Nube de Fogonazo",
+        "Nube de Niebla",
+        "Nube de fogonazo",
+        "Nube de oscurecimiento"
+      ]
+    },
+    {
+      "source": "Foresight",
+      "targets": [
+        "Presciencia",
+        "Previsión"
+      ]
+    },
+    {
+      "source": "Freedom of Movement",
+      "targets": [
+        "Libertad de Movimiento",
+        "Libertad de movimiento"
+      ]
+    },
+    {
+      "source": "Gaseous Form",
+      "targets": [
+        "Forma Gaseosa",
+        "Forma gaseosa"
+      ]
+    },
+    {
+      "source": "General Feats",
+      "targets": [
+        "Dotes Generales",
+        "Dotes generales"
+      ]
+    },
+    {
+      "source": "Gentle Repose",
+      "targets": [
+        "Reposo Tranquilo",
+        "Reposo tranquilo"
+      ]
+    },
+    {
+      "source": "Glibness",
+      "targets": [
+        "Elocuencia",
+        "Labia"
+      ]
+    },
+    {
+      "source": "Greater Invisibility",
+      "targets": [
+        "Invisibilidad Mayor",
+        "Invisibilidad mayor"
+      ]
+    },
+    {
+      "source": "Greater Restoration",
+      "targets": [
+        "Restablecimiento Mayor",
+        "Restablecimiento mayor",
+        "Restauración Mayor",
+        "Restauración mayor"
+      ]
+    },
+    {
+      "source": "Guiding Bolt",
+      "targets": [
+        "Proyectil Guía",
+        "Proyectil guiado",
+        "Proyectil guía",
+        "Saeta Guía"
+      ]
+    },
+    {
+      "source": "Gust of Wind",
+      "targets": [
+        "Ráfaga de Viento",
+        "Ráfaga de viento"
+      ]
+    },
+    {
+      "source": "Half Plate Armor",
+      "targets": [
+        "Media armadura",
+        "Semiplacas"
+      ]
+    },
+    {
+      "source": "Hallucinatory Terrain",
+      "targets": [
+        "Terreno Alucinatorio",
+        "Terreno alucinatorio"
+      ]
+    },
+    {
+      "source": "Healing Word",
+      "targets": [
+        "Palabra de Curación",
+        "Palabra de curación"
+      ]
+    },
+    {
+      "source": "Heat Metal",
+      "targets": [
+        "Calentar Metal",
+        "Calentar metal"
+      ]
+    },
+    {
+      "source": "Hellish Rebuke",
+      "targets": [
+        "Reprensión Infernal",
+        "Reprensión infernal"
+      ]
+    },
+    {
+      "source": "Heroes' Feast",
+      "targets": [
+        "Banquete de Héroes",
+        "Banquete de héroes",
+        "Banquete de los Héroes"
+      ]
+    },
+    {
+      "source": "Hex",
+      "targets": [
+        "Maldición",
+        "Maleficio"
+      ]
+    },
+    {
+      "source": "Hide of the Brimstone Behemoth",
+      "targets": [
+        "Piel del Behemot de Azufre +3",
+        "Piel del Behemoth de Azufre +1",
+        "Piel del Behemoth de Azufre +2"
+      ]
+    },
+    {
+      "source": "Hold Monster",
+      "targets": [
+        "Retener Monstruo",
+        "Retener monstruo"
+      ]
+    },
+    {
+      "source": "Hold Person",
+      "targets": [
+        "Inmovilizar persona",
+        "Persona de retención",
+        "Persona paralizada",
+        "Personas dominadas",
+        "Retener Persona",
+        "Retener persona"
+      ]
+    },
+    {
+      "source": "Holy Symbol",
+      "targets": [
+        "Símbolo Sagrado",
+        "Símbolo sagrado"
+      ]
+    },
+    {
+      "source": "Homunculus Servant",
+      "targets": [
+        "Homúnculo sirviente",
+        "Sirviente homúnculo"
+      ]
+    },
+    {
+      "source": "Hooded Lantern",
+      "targets": [
+        "Linterna con capucha",
+        "Linterna sorda"
+      ]
+    },
+    {
+      "source": "Hook of the Tall Man",
+      "targets": [
+        "Gancho del Hombre Alto +2",
+        "Gancho del Hombre Alto +3",
+        "Garfio del Hombre Alto +1"
+      ]
+    },
+    {
+      "source": "Hypnotic Pattern",
+      "targets": [
+        "Patrón Hipnótico",
+        "Patrón hipnótico",
+        "Pauta hipnótica"
+      ]
+    },
+    {
+      "source": "Ice Knife",
+      "targets": [
+        "Cuchillo de Hielo",
+        "Cuchillo de hielo",
+        "Daga de hielo"
+      ]
+    },
+    {
+      "source": "Ice Storm",
+      "targets": [
+        "Tormenta de Escarcha",
+        "Tormenta de Hielo",
+        "Tormenta de hielo"
+      ]
+    },
+    {
+      "source": "Idol of the Beast of Blight",
+      "targets": [
+        "Ídolo de la Bestia de la Plaga +1",
+        "Ídolo de la Bestia de la Plaga +2",
+        "Ídolo de la Bestia de la Plaga +3"
+      ]
+    },
+    {
+      "source": "Inflict Wounds",
+      "targets": [
+        "Infligir Heridas",
+        "Infligir heridas"
+      ]
+    },
+    {
+      "source": "Ink Pen",
+      "targets": [
+        "Pluma de escribir",
+        "Pluma de escritura"
+      ]
+    },
+    {
+      "source": "Insect Plague",
+      "targets": [
+        "Plaga de Insectos",
+        "Plaga de insectos"
+      ]
+    },
+    {
+      "source": "Jallarzi's Storm of Radiance",
+      "targets": [
+        "Tormenta de Radiancia de Jallarzi",
+        "Tormenta radiante de Jallarzi"
+      ]
+    },
+    {
+      "source": "Jump",
+      "targets": [
+        "Saltar",
+        "Salto"
+      ]
+    },
+    {
+      "source": "Lantern of the Chained Reaper",
+      "targets": [
+        "Linterna del Segador Encadenado +1",
+        "Linterna del Segador Encadenado +2",
+        "Linterna del Segador Encadenado +3"
+      ]
+    },
+    {
+      "source": "Legend Lore",
+      "targets": [
+        "Conocimiento de Leyendas",
+        "Conocimiento de leyendas",
+        "Leyenda mítica"
+      ]
+    },
+    {
+      "source": "Leomund's Tiny Hut",
+      "targets": [
+        "Choza Diminuta de Leomund",
+        "Choza diminuta de Leomund"
+      ]
+    },
+    {
+      "source": "Lesser Restoration",
+      "targets": [
+        "Restablecimiento Menor",
+        "Restablecimiento menor",
+        "Restauración Menor",
+        "Restauración menor"
+      ]
+    },
+    {
+      "source": "Lightning Bolt",
+      "targets": [
+        "Rayo",
+        "Rayo de relámpagos",
+        "Relámpago"
+      ]
+    },
+    {
+      "source": "Locate Object",
+      "targets": [
+        "Localizar Objeto",
+        "Localizar objeto"
+      ]
+    },
+    {
+      "source": "Mage Armor",
+      "targets": [
+        "Armadura de Mago",
+        "Armadura de mago"
+      ]
+    },
+    {
+      "source": "Mage Hand",
+      "targets": [
+        "Mano de Mago",
+        "Mano de mago"
+      ]
+    },
+    {
+      "source": "Magic Circle",
+      "targets": [
+        "Círculo Mágico",
+        "Círculo mágico"
+      ]
+    },
+    {
+      "source": "Magic Jar",
+      "targets": [
+        "Recipiente Mágico",
+        "Recipiente mágico"
+      ]
+    },
+    {
+      "source": "Magic Missile",
+      "targets": [
+        "Proyectil Mágico",
+        "Proyectil mágico"
+      ]
+    },
+    {
+      "source": "Major Image",
+      "targets": [
+        "Imagen Mayor",
+        "Imagen mayor"
+      ]
+    },
+    {
+      "source": "Marotte of the Lord of Fools",
+      "targets": [
+        "Cetro del Señor de los Bufones +2",
+        "Cetro del Señor de los Bufones +3",
+        "Marotte del Señor de los Bufones +1"
+      ]
+    },
+    {
+      "source": "Mask of Lethica Nightborne",
+      "targets": [
+        "Máscara de Lethica Nacida de la Noche +1",
+        "Máscara de Lethica Nacida de la Noche +2",
+        "Máscara de Lethica Nacida de la Noche +3"
+      ]
+    },
+    {
+      "source": "Mass Suggestion",
+      "targets": [
+        "Sugestión de Masas",
+        "Sugestión de masas",
+        "Sugestión en Grupo"
+      ]
+    },
+    {
+      "source": "Meld Into Stone",
+      "targets": [
+        "Fundirse en la Piedra",
+        "Fundirse en la piedra"
+      ]
+    },
+    {
+      "source": "Melf’s Acid Arrow",
+      "targets": [
+        "Flecha Ácida de Melf",
+        "Flecha ácida de Melf"
+      ]
+    },
+    {
+      "source": "Meteor Swarm",
+      "targets": [
+        "Enjambre de Meteoritos",
+        "Enjambre de meteoritos"
+      ]
+    },
+    {
+      "source": "Mind Blank",
+      "targets": [
+        "Mente Vacía",
+        "Mente en Blanco"
+      ]
+    },
+    {
+      "source": "Mind Sliver",
+      "targets": [
+        "Lascivia Mental",
+        "Latigazo Mental"
+      ]
+    },
+    {
+      "source": "Mind Spike",
+      "targets": [
+        "Estaca mental",
+        "Púa Mental",
+        "Púa mental"
+      ]
+    },
+    {
+      "source": "Minor Illusion",
+      "targets": [
+        "Ilusión Menor",
+        "Ilusión menor"
+      ]
+    },
+    {
+      "source": "Mirage Arcane",
+      "targets": [
+        "Espejismo Arcano",
+        "Espejismo arcano"
+      ]
+    },
+    {
+      "source": "Mirror Image",
+      "targets": [
+        "Imagen Espejo",
+        "Imagen especular",
+        "Imagen múltiple"
+      ]
+    },
+    {
+      "source": "Misty Step",
+      "targets": [
+        "Paso Brumoso",
+        "Paso brumoso"
+      ]
+    },
+    {
+      "source": "Modify Memory",
+      "targets": [
+        "Modificar Memoria",
+        "Modificar memoria"
+      ]
+    },
+    {
+      "source": "Moonbeam",
+      "targets": [
+        "Haz Lunar",
+        "Haz de Luna"
+      ]
+    },
+    {
+      "source": "Mordenkainen's Private Sanctum",
+      "targets": [
+        "Sagrario Privado de Mordenkainen",
+        "Sagrario privado de Mordenkainen"
+      ]
+    },
+    {
+      "source": "Move Earth",
+      "targets": [
+        "Mover Tierra",
+        "Mover tierra"
+      ]
+    },
+    {
+      "source": "Nondetection",
+      "targets": [
+        "Indetectabilidad",
+        "No detección"
+      ]
+    },
+    {
+      "source": "Origin Feats",
+      "targets": [
+        "Dotes de Origen",
+        "Dotes de origen"
+      ]
+    },
+    {
+      "source": "Otiluke’s Resilient Sphere",
+      "targets": [
+        "Esfera Resiliente de Otiluke",
+        "Esfera resiliente de Otiluke"
+      ]
+    },
+    {
+      "source": "Pass Without Trace",
+      "targets": [
+        "Pasar sin Dejar Rastro",
+        "Pasar sin dejar Rastro",
+        "Pasar sin rastro"
+      ]
+    },
+    {
+      "source": "Passwall",
+      "targets": [
+        "Pasaje Infalible",
+        "Pasamuros"
+      ]
+    },
+    {
+      "source": "Phantasmal Killer",
+      "targets": [
+        "Asesino Fantasmagórico",
+        "Asesino Fantasmal",
+        "Asesino fantasmagórico",
+        "Asesino fantasmal"
+      ]
+    },
+    {
+      "source": "Phantom Steed",
+      "targets": [
+        "Corcel Fantasmal",
+        "Corcel fantasmagórico"
+      ]
+    },
+    {
+      "source": "Planar Ally",
+      "targets": [
+        "Aliado del Plano",
+        "Aliado del plano"
+      ]
+    },
+    {
+      "source": "Planar Binding",
+      "targets": [
+        "Vínculo Planar",
+        "Vínculo planar"
+      ]
+    },
+    {
+      "source": "Planchette of Adela Druskenvald",
+      "targets": [
+        "Plancheta de Adela Druskenvald +1",
+        "Plancheta de Adela Druskenvald +3",
+        "Planchette de Adela Druskenvald +2"
+      ]
+    },
+    {
+      "source": "Plane Shift",
+      "targets": [
+        "Desplazamiento de Plano",
+        "Desplazamiento de plano",
+        "Desplazamiento entre planos"
+      ]
+    },
+    {
+      "source": "Player's Handbook (2024)",
+      "targets": [
+        "Manual del Jugador (2024)",
+        "Manual del jugador (2024)"
+      ]
+    },
+    {
+      "source": "Polymorph",
+      "targets": [
+        "Polimorfar",
+        "Polimorfia",
+        "Polimorfismo"
+      ]
+    },
+    {
+      "source": "Power Word Kill",
+      "targets": [
+        "Palabra de Poder: Matar",
+        "Palabra de poder: matar"
+      ]
+    },
+    {
+      "source": "Power Word Stun",
+      "targets": [
+        "Palabra de Poder: Aturdir",
+        "Palabra de poder: Aturdir"
+      ]
+    },
+    {
+      "source": "Prestidigitation",
+      "targets": [
+        "Prestidigitación",
+        "Prestigitación"
+      ]
+    },
+    {
+      "source": "Project Image",
+      "targets": [
+        "Proyectar Imagen",
+        "Proyectar imagen"
+      ]
+    },
+    {
+      "source": "Protection From Poison",
+      "targets": [
+        "Protección contra Veneno",
+        "Protección contra veneno"
+      ]
+    },
+    {
+      "source": "Purify Food And Drink",
+      "targets": [
+        "Purificar Comida y Bebida",
+        "Purificar comida y bebida"
+      ]
+    },
+    {
+      "source": "Raise Dead",
+      "targets": [
+        "Revivir",
+        "Revivir a los Muertos",
+        "Revivir a los muertos"
+      ]
+    },
+    {
+      "source": "Ray of Enfeeblement",
+      "targets": [
+        "Rayo de Debilitamiento",
+        "Rayo de debilitamiento"
+      ]
+    },
+    {
+      "source": "Ray of Sickness",
+      "targets": [
+        "Rayo de Enfermedad",
+        "Rayo de enfermedad"
+      ]
+    },
+    {
+      "source": "Reanimated Companion",
+      "targets": [
+        "Compañero Reanimado",
+        "Compañero Reanimado - Empapado",
+        "Compañero reanimado - Grande"
+      ]
+    },
+    {
+      "source": "Remove Curse",
+      "targets": [
+        "Eliminar Maldición",
+        "Eliminar maldición",
+        "Quitar maldición"
+      ]
+    },
+    {
+      "source": "Runestone of the Wild Titan",
+      "targets": [
+        "Piedra Rúnica del Titán Salvaje +3",
+        "Piedra rúnica del Titán Salvaje +1",
+        "Piedra rúnica del Titán Salvaje +2"
+      ]
+    },
+    {
+      "source": "Sanctuary",
+      "targets": [
+        "Capilla",
+        "Santuario"
+      ]
+    },
+    {
+      "source": "Scorching Ray",
+      "targets": [
+        "Rayo Abrasador",
+        "Rayo abrasador"
+      ]
+    },
+    {
+      "source": "Scrying",
+      "targets": [
+        "Adivinación",
+        "Escrudiñamiento",
+        "Escrudiñar",
+        "Escrutar",
+        "Escudriñamiento",
+        "Escudriñar"
+      ]
+    },
+    {
+      "source": "Scythe of the Harvest Terror",
+      "targets": [
+        "Guadaña del Terror de la Cosecha +1",
+        "Guadaña del Terror de la Cosecha +2",
+        "Guadaña del Terror de la Cosecha +3"
+      ]
+    },
+    {
+      "source": "See Invisibility",
+      "targets": [
+        "Ver Invisibilidad",
+        "Ver invisibilidad"
+      ]
+    },
+    {
+      "source": "Sending",
+      "targets": [
+        "Enviar",
+        "Enviar mensaje",
+        "Envío",
+        "Recado"
+      ]
+    },
+    {
+      "source": "Shapechange",
+      "targets": [
+        "Alterar Forma",
+        "Alterar forma",
+        "Cambio de Forma",
+        "Cambio de forma",
+        "Polimorfia verdadera"
+      ]
+    },
+    {
+      "source": "Shatter",
+      "targets": [
+        "Añicos",
+        "Estallido",
+        "Hacer añicos"
+      ]
+    },
+    {
+      "source": "Shield of Faith",
+      "targets": [
+        "Escudo de Fe",
+        "Escudo de fe"
+      ]
+    },
+    {
+      "source": "Shield of Marius Renathyr",
+      "targets": [
+        "Escudo de Marius Renathyr +1",
+        "Escudo de Marius Renathyr +2",
+        "Escudo de Marius Renathyr +3"
+      ]
+    },
+    {
+      "source": "Shining Smite",
+      "targets": [
+        "Castigo Brillante",
+        "Castigo Radiante"
+      ]
+    },
+    {
+      "source": "Shot",
+      "targets": [
+        "Metralla",
+        "Perdigones"
+      ]
+    },
+    {
+      "source": "Shovel of Yorgrim",
+      "targets": [
+        "Pala de Yorgrim +1",
+        "Pala de Yorgrim +2",
+        "Pala de Yorgrim +3"
+      ]
+    },
+    {
+      "source": "Sleep",
+      "targets": [
+        "Dormir",
+        "Sueño"
+      ]
+    },
+    {
+      "source": "Speak With Animals",
+      "targets": [
+        "Hablar con los Animales",
+        "Hablar con los animales"
+      ]
+    },
+    {
+      "source": "Speak With Dead",
+      "targets": [
+        "Hablar con los Muertos",
+        "Hablar con los muertos"
+      ]
+    },
+    {
+      "source": "Speak With Plants",
+      "targets": [
+        "Hablar con las Plantas",
+        "Hablar con las plantas"
+      ]
+    },
+    {
+      "source": "Spike Growth",
+      "targets": [
+        "Crecimiento de Espinas",
+        "Crecimiento de espinas"
+      ]
+    },
+    {
+      "source": "Spirit Guardians",
+      "targets": [
+        "Guardianes Espirituales",
+        "Guardianes espirituales"
+      ]
+    },
+    {
+      "source": "Spiritual Weapon",
+      "targets": [
+        "Arma Espiritual",
+        "Arma espiritual"
+      ]
+    },
+    {
+      "source": "Staff of Farryn of the Greenwood",
+      "targets": [
+        "Bastón de Farryn del Bosqueverde +1",
+        "Bastón de Farryn del Bosqueverde +2",
+        "Bastón de Farryn del Bosqueverde +3"
+      ]
+    },
+    {
+      "source": "Stinking Cloud",
+      "targets": [
+        "Nube Apestosa",
+        "Nube apestosa"
+      ]
+    },
+    {
+      "source": "Summon Fey",
+      "targets": [
+        "Convocar feérico",
+        "Invocar fey"
+      ]
+    },
+    {
+      "source": "Sword of the Crimson Abbot",
+      "targets": [
+        "Espada del Abad Carmesí +1",
+        "Espada del Abad Carmesí +2",
+        "Espada del Abad Carmesí +3"
+      ]
+    },
+    {
+      "source": "Synaptic Static",
+      "targets": [
+        "Estática Sináptica",
+        "Estática sináptica"
+      ]
+    },
+    {
+      "source": "Tasha's Hideous Laughter",
+      "targets": [
+        "Risa Horrenda de Tasha",
+        "Risa Horrible de Tasha",
+        "Risa atroz de Tasha",
+        "Risa espantosa de Tasha"
+      ]
+    },
+    {
+      "source": "Telekinesis",
+      "targets": [
+        "Telequinesia",
+        "Telequinesis"
+      ]
+    },
+    {
+      "source": "Teleportation Circle",
+      "targets": [
+        "Círculo de Teletransporte",
+        "Círculo de teletransporte"
+      ]
+    },
+    {
+      "source": "Thorn Whip",
+      "targets": [
+        "Latigazo de Espinas",
+        "Látigo de espinas"
+      ]
+    },
+    {
+      "source": "Thunderous Smite",
+      "targets": [
+        "Castigo Tronante",
+        "Castigo atronador"
+      ]
+    },
+    {
+      "source": "Thunderwave",
+      "targets": [
+        "Ola Tronante",
+        "Ola atronadora",
+        "Ola de trueno",
+        "Ola tronante",
+        "Onda de trueno"
+      ]
+    },
+    {
+      "source": "Time Stop",
+      "targets": [
+        "Detener el Tiempo",
+        "Detener el tiempo"
+      ]
+    },
+    {
+      "source": "Tinderbox",
+      "targets": [
+        "Caja de yesca",
+        "Yesquero"
+      ]
+    },
+    {
+      "source": "Toll The Dead",
+      "targets": [
+        "Tañido fúnebre",
+        "Tañido por los Muertos"
+      ]
+    },
+    {
+      "source": "Tongues",
+      "targets": [
+        "Lenguajes",
+        "Lenguas"
+      ]
+    },
+    {
+      "source": "Tough",
+      "targets": [
+        "Matón",
+        "Robusto"
+      ]
+    },
+    {
+      "source": "True Strike",
+      "targets": [
+        "Certero",
+        "Impacto Verdadero"
+      ]
+    },
+    {
+      "source": "Unseen Servant",
+      "targets": [
+        "Servidor invisible",
+        "Sirviente Invisible",
+        "Sirviente invisible"
+      ]
+    },
+    {
+      "source": "Vampiric Touch",
+      "targets": [
+        "Toque Vampírico",
+        "Toque vampírico"
+      ]
+    },
+    {
+      "source": "Vicious Mockery",
+      "targets": [
+        "Burla Cruel",
+        "Burla Maliciosa",
+        "Burla cruel"
+      ]
+    },
+    {
+      "source": "Vitriolic Sphere",
+      "targets": [
+        "Esfera Vitriólica",
+        "Esfera vitriólica"
+      ]
+    },
+    {
+      "source": "Wall of Fire",
+      "targets": [
+        "Muro de Fuego",
+        "Muro de fuego"
+      ]
+    },
+    {
+      "source": "Warding Bond",
+      "targets": [
+        "Vínculo de Protección",
+        "Vínculo de protección"
+      ]
+    },
+    {
+      "source": "Water Breathing",
+      "targets": [
+        "Respiración Acuática",
+        "Respiración acuática"
+      ]
+    },
+    {
+      "source": "Weapon Charm (Blade)",
+      "targets": [
+        "Amuleto de arma (hoja)",
+        "Amuleto para Arma (Hoja)"
+      ]
+    },
+    {
+      "source": "Wind Walk",
+      "targets": [
+        "Caminar por el Viento",
+        "Caminar por el viento"
+      ]
+    },
+    {
+      "source": "Witch Bolt",
+      "targets": [
+        "Rayo de bruja",
+        "Saeta de bruja"
+      ]
+    },
+    {
+      "source": "Wrathful Smite",
+      "targets": [
+        "Castigo Iracundo",
+        "Castigo colérico"
+      ]
+    },
+    {
+      "source": "Zone of Truth",
+      "targets": [
+        "Zona de Verdad",
+        "Zona de la Verdad",
+        "Zona de la verdad",
+        "Zona de verdad"
+      ]
+    },
+    {
+      "source": "Архифея",
+      "targets": [
+        "Archihada",
+        "El Archifey"
+      ]
+    },
+    {
+      "source": "Драгоценные камни",
+      "targets": [
+        "Gemas",
+        "Gemas preciosas"
+      ]
+    },
+    {
+      "source": "Игровые наборы",
+      "targets": [
+        "Juegos de azar",
+        "Sets de Juego",
+        "Sets de juego"
+      ]
+    },
+    {
+      "source": "Инструменты ремесленника",
+      "targets": [
+        "Herramientas de Artesano",
+        "Herramientas de artesano"
+      ]
+    },
+    {
+      "source": "Исчадие",
+      "targets": [
+        "El Infernal",
+        "Infernal",
+        "Íncubo/Fierecilla (Íncubo)"
+      ]
+    },
+    {
+      "source": "Колдун",
+      "targets": [
+        "Brujo",
+        "Brujo (Warlock)"
+      ]
+    },
+    {
+      "source": "Лёгкие",
+      "targets": [
+        "Ligera",
+        "Ligeras"
+      ]
+    },
+    {
+      "source": "Музыкальные инструменты",
+      "targets": [
+        "Instrumentos Musicales",
+        "Instrumentos musicales"
+      ]
+    },
+    {
+      "source": "Небожитель",
+      "targets": [
+        "Celestial",
+        "El Celestial"
+      ]
+    },
+    {
+      "source": "Нежить",
+      "targets": [
+        "No Muerto",
+        "No muerto"
+      ]
+    },
+    {
+      "source": "Огнестрельное оружие",
+      "targets": [
+        "Armas de Fuego",
+        "Armas de fuego"
+      ]
+    },
+    {
+      "source": "Повелитель зверей",
+      "targets": [
+        "Maestro de Bestias",
+        "Maestro de las Bestias"
+      ]
+    },
+    {
+      "source": "Прочие инструменты",
+      "targets": [
+        "Otras Herramientas",
+        "Otras herramientas",
+        "Otros instrumentos"
+      ]
+    },
+    {
+      "source": "Путь фанатика",
+      "targets": [
+        "Senda del Fanático",
+        "Senda del Zelote"
+      ]
+    },
+    {
+      "source": "Расширенное огнестрельное",
+      "targets": [
+        "Armas de Fuego Expandidas",
+        "Armas de fuego avanzadas"
+      ]
+    },
+    {
+      "source": "Следопыт",
+      "targets": [
+        "Explorador",
+        "Explorador (Ranger)"
+      ]
+    },
+    {
+      "source": "Слизь",
+      "targets": [
+        "Cienago",
+        "Cieno"
+      ]
+    },
+    {
+      "source": "Средние",
+      "targets": [
+        "Media",
+        "Medias"
+      ]
+    },
+    {
+      "source": "Странник фей",
+      "targets": [
+        "Errante de la Selva Feérica",
+        "Errante de las Hadas"
+      ]
+    },
+    {
+      "source": "Таинственные воззвания",
+      "targets": [
+        "Invocaciones Atávicas",
+        "Invocaciones sobrenaturales"
+      ]
+    },
+    {
+      "source": "Тяжелые",
+      "targets": [
+        "Pesada",
+        "Pesadas"
+      ]
+    },
+    {
+      "source": "Универсальные черты [General Feats]",
+      "targets": [
+        "Dotes Generales [General Feats]",
+        "Dotes generales [General Feats]"
+      ]
+    },
+    {
+      "source": "Фея",
+      "targets": [
+        "Feérico",
+        "Hada"
+      ]
+    },
+    {
+      "source": "Футуристичное оружие",
+      "targets": [
+        "Armas Futuristas",
+        "Armas futuristas"
+      ]
+    },
+    {
+      "source": "Чудовище",
+      "targets": [
+        "Monstruo",
+        "Monstruosidad"
+      ]
+    },
+    {
+      "source": "Эпоха возрождения",
+      "targets": [
+        "Renacimiento",
+        "Época del Renacimiento"
+      ]
+    },
+    {
+      "source": "Эпоха промышленной революции",
+      "targets": [
+        "Revolución Industrial",
+        "Época de la Revolución Industrial"
+      ]
+    }
+  ],
+  "rejected": []
+}

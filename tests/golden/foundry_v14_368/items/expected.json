@@ -1,0 +1,11 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Espada",
+  "img": "icons/sword.webp",
+  "system": {
+    "quantity": 2,
+    "description": {
+      "value": "Ataque [[/damage 2d6[fire]]]"
+    }
+  }
+}

@@ -52,10 +52,10 @@ const DEFAULT_MEMORY_FILES = [
 
 let cachedTerms: Map<string, string> | null = null;
 
-export async function loadTranslationMemoryTerms(): Promise<Map<string, string>> {
+export async function loadTranslationMemoryTerms(files = DEFAULT_MEMORY_FILES): Promise<Map<string, string>> {
   if (cachedTerms) return cachedTerms;
 
-  for (const file of DEFAULT_MEMORY_FILES) {
+  for (const file of files) {
     try {
       const raw = await fs.readFile(file, 'utf8');
       const payload = JSON.parse(raw) as GeneratedMemoryPayload;

@@ -1,0 +1,13 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Ataque",
+  "img": "assets/map.webp",
+  "tokens": [
+    {
+      "_id": "qrstuvwxyzABCDEF",
+      "actorId": "abcdefghijklmnop",
+      "x": 10,
+      "y": 20
+    }
+  ]
+}

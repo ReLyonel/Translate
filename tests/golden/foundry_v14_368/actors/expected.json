@@ -1,0 +1,20 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Ataque",
+  "type": "npc",
+  "items": [
+    {
+      "_id": "qrstuvwxyzABCDEF",
+      "name": "Espada",
+      "system": {
+        "description": {
+          "value": "<p>Ataque @UUID[Item.abcdefghijklmnop]</p>"
+        },
+        "formula": "1d20+5"
+      }
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368"
+  }
+}

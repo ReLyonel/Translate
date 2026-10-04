@@ -1,0 +1,14 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Ataque",
+  "pages": [
+    {
+      "_id": "qrstuvwxyzABCDEF",
+      "name": "Espada",
+      "text": {
+        "content": "<p class=\"rule\">Ataque</p>",
+        "format": 1
+      }
+    }
+  ]
+}

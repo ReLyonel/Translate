@@ -1,0 +1,11 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Sword",
+  "img": "icons/sword.webp",
+  "system": {
+    "quantity": 2,
+    "description": {
+      "value": "Attack [[/damage 2d6[fire]]]"
+    }
+  }
+}

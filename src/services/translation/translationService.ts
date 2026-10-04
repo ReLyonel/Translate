@@ -17,7 +17,9 @@ export interface TranslationProvider {
   translate(
     texts: string[],
     terminology: TerminologyEntry[],
-    context?: TranslationContext
+    context?: TranslationContext,
+    sourceLanguage?: 'auto' | 'en' | 'ru',
+    sourceTexts?:string[]
   ): Promise<string[]>;
 }
 
@@ -27,27 +29,13 @@ export class OllamaTranslationProvider implements TranslationProvider {
   public async translate(
     texts: string[],
     terminology: TerminologyEntry[],
-    context?: TranslationContext
+    context?: TranslationContext,
+    sourceLanguage: 'auto' | 'en' | 'ru' = 'auto',
+    sourceTexts?:string[]
   ): Promise<string[]> {
-    const res = await fetch('/api/translate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        texts,
-        terminology,
-        context,
-        sourceLanguage: 'English',
-        targetLanguage: 'Spanish',
-      }),
+    return window.desktop.translate({
+      texts, units:sourceTexts?.map(sourceText=>({sourceText})), terminology: terminology.map(term => ({ source: term.source, target: term.target })), context, sourceLanguage,
     });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Error HTTP ${res.status} al traducir con el servidor.`);
-    }
-
-    const data = await res.json();
-    return data.translations;
   }
 }
 
@@ -95,7 +83,8 @@ export class TranslationService {
     const [translatedProtected] = await this.provider.translate(
       [protectedText],
       matchedTerms,
-      context
+      context,
+      undefined,[text]
     );
 
     // 4. Restore placeholders
@@ -124,6 +113,7 @@ export class TranslationService {
       batchSize?: number;
       onProgress?: (completed: number, total: number, currentItem: string) => void;
       signal?: AbortSignal;
+      sourceLanguage?: 'auto' | 'en' | 'ru';
     } = {}
   ): Promise<Map<string, TranslationResult>> {
     const batchSize = options.batchSize || 4;
@@ -162,11 +152,13 @@ export class TranslationService {
       }
       const chunkTerms = Array.from(mergedTermsMap.values());
 
-      // Translate chunk via server
+      // Translate the protected chunk through the desktop host
       const translatedBatch = await this.provider.translate(
         chunkPrepared.map((p) => p.protectedText),
         chunkTerms,
-        chunk[0]?.context
+        chunk[0]?.context,
+        options.sourceLanguage,
+        chunkPrepared.map(item=>item.original)
       );
 
       // Restore each item

@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';import path from 'node:path';import {MemoryStore,hashKey} from '../desktop/memory/store';import {PdfReuse} from '../desktop/memory/pdfReuse';import {inventory} from '../desktop/translation/inventory';import {pdfHash} from '../desktop/memory/pdfCorpus';
+const root=process.argv[2]||'C:/Users/leond/AppData/Local/FoundryVTT/Data/modules/fifthpendium',directory=path.resolve(process.env.APPDATA||'','foundry-translator/translation-memory'),database=path.join(directory,'store.json'),before=pdfHash(await fs.readFile(database)),store=await new MemoryStore(directory).load(),pdf=new PdfReuse(store),data=await inventory(root);
+const seen=new Set<string>(),counts={files:data.files,strings:data.units.length,unique:0,english_unique:0,russian_unique:0,reviewable_units:0,approved_exact:0,approved_canonical:0,approved_context:0};
+for(const unit of data.units){const language=/[\u0400-\u04ff]/.test(unit.source)?'ru':'en',key=hashKey([unit.source,unit.context]);if(seen.has(key))continue;seen.add(key);counts.unique++;if(language==='ru')counts.russian_unique++;else counts.english_unique++;
+ if(pdf.reviewCandidates(unit.source,language,unit.context))counts.reviewable_units++;
+ if(pdf.canonical(unit.source,unit.context))counts.approved_canonical++;else if(pdf.exact(unit.source,language,unit.context))counts.approved_exact++;else if(pdf.context(unit.source,language,unit.context))counts.approved_context++;
+}
+if(before!==pdfHash(await fs.readFile(database)))throw new Error('PDF_AUDIT_CHANGED_MEMORY');
+const report={schema_version:1,mode:'READ_ONLY_NO_INFERENCE',language_policy:'AUTO_CYRILLIC_OR_ENGLISH_NOT_LANGUAGE_CERTIFICATION',counts,pdf_memory:await pdf.reportStatistics(),memory_unchanged:true,source_policy:'PDF approval requires reviewed alignment. Russian reuse requires explicit approved canonical binding; no names or page positions as identity.'};
+await fs.mkdir('reports/pdf-memory',{recursive:true});await fs.writeFile('reports/pdf-memory/coverage.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));

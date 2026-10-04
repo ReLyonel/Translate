@@ -5,6 +5,9 @@ import { FoundryValidator } from './validation/foundryValidator';
 
 const stats = { translatedCount: 1, confirmedTermsCount: 0, reviewedTermsCount: 0, uncertainTermsCount: 0 };
 describe('Foundry-safe pipeline', () => {
+  it('rejects invented template placeholders', () => {
+    expect(ProtectedContentEngine.restore('Archivo [[PROTECTED_###]]', new Map()).isValid).toBe(false);
+  });
   it('reconstructs nested objects and arrays without changing technical fields', () => {
     const original = [{ _id: 'abc', name: 'Fire Bolt', system: { description: { value: 'Deal 1d10 fire damage.' }, activities: [{ description: { value: 'Make an attack.' } }] } }];
     const translated = JsonEngine.reconstruct(original, [{ path: '[0].name', value: 'Proyectil de fuego' }, { path: '[0].system.description.value', value: 'Inflige 1d10 de daño de fuego.' }]);
@@ -22,7 +25,8 @@ describe('Foundry-safe pipeline', () => {
   it('protects Foundry macros while retaining visible labels for translation', () => {
     const input = '@UUID[Compendium.x.Item.abc]{Counterspell} [[/item .ABC123]]{Counterspell} [[lookup @abilities.str.mod]] [[/damage 2d6[fire]]] @Embed[JournalEntry.foo]';
     const protectedValue = ProtectedContentEngine.protect(input);
-    expect(protectedValue.protectedText).toContain('{Counterspell}');
+    expect(protectedValue.protectedText).toContain('Counterspell');
+    expect(protectedValue.protectedText).not.toContain('{Counterspell}'); // Label braces are technical, prose remains visible.
     const translated = protectedValue.protectedText.replaceAll('Counterspell', 'Contrahechizo');
     const restored = ProtectedContentEngine.restore(translated, protectedValue.tokens);
     expect(restored.isValid).toBe(true);

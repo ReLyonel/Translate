@@ -1,0 +1,16 @@
+appId: com.foundry.translator
+productName: Traductor Foundry
+directories:
+  output: release
+files:
+  - dist/**/*
+  - dist-desktop/**/*
+  - package.json
+asar: true
+npmRebuild: false
+win:
+  target:
+    - target: portable
+      arch: [x64]
+  signAndEditExecutable: false
+artifactName: Traductor-Foundry-${version}-${arch}.${ext}

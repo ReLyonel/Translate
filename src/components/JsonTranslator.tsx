@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { BatchTranslator } from './BatchTranslator';
 import {
   Upload,
   FileCode,
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react';
 import { JsonEngine } from '../services/json/jsonEngine';
 import { FoundryValidator } from '../services/validation/foundryValidator';
+import { jsonQualityGate } from '../services/validation/qualityGate';
 import { translationService } from '../services/translation/translationService';
 import { terminologyEngine } from '../services/terminology/terminologyEngine';
 import { JsonInspectionResult, DetectedField, ValidationReport } from '../types';
@@ -48,13 +50,14 @@ const INITIAL_STEPS: PipelineStep[] = [
 
 export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
   const [inspection, setInspection] = useState<JsonInspectionResult | null>(null);
+  const [sourceLanguage, setSourceLanguage] = useState<'auto' | 'en' | 'ru'>('auto');
   const [isTranslating, setIsTranslating] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   const [progressItem, setProgressItem] = useState('');
   const [pipelineSteps, setPipelineSteps] = useState<PipelineStep[]>(INITIAL_STEPS);
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [translatedJson, setTranslatedJson] = useState<any | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'TRANSLATABLE' | 'UNCERTAIN' | 'PROTECTED'>('ALL');
+  const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'TRANSLATABLE' | 'UNCERTAIN' | 'PROTECTED'>('TRANSLATABLE');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'fields' | 'preview_diff'>('fields');
   const [copied, setCopied] = useState(false);
@@ -66,7 +69,7 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
   // Load JSON file
   const handleLoadJson = (content: string, fileName: string) => {
     try {
-      const parsed = JSON.parse(content);
+      const parsed = JsonEngine.parse(content);
       const result = JsonEngine.analyze(parsed, fileName);
       setInspection(result);
       setTranslatedJson(null);
@@ -139,7 +142,7 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
 
       // Step 2: Detect & protect
       updateStep('protect', 'in_progress');
-      const activeFields = inspection.fields.filter((f) => f.userInclude);
+      const activeFields = inspection.fields.filter((f) => f.userInclude && f.classification === 'TRANSLATABLE');
       await new Promise((r) => setTimeout(r, 150));
       updateStep('protect', 'completed');
 
@@ -167,6 +170,7 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
       }));
 
       const translationResults = await translationService.translateBatch(itemsToTranslate, {
+        sourceLanguage,
         batchSize: 6,
         signal: abortControllerRef.current.signal,
         onProgress: (done, total, current) => {
@@ -180,7 +184,7 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
       // Step 5: Restore placeholders & macros
       updateStep('restore', 'in_progress');
       const placeholderErrors: string[] = [];
-      const translatedPathValues: { path: string; value: string }[] = [];
+      const translatedPathValues: { path: string; value: string; pathSegments?: (string | number)[] }[] = [];
 
       const updatedFields = inspection.fields.map((f) => {
         const res = translationResults.get(f.id);
@@ -188,11 +192,11 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
           if (!res.isValid) {
             placeholderErrors.push(...res.errors);
           }
-          translatedPathValues.push({ path: f.path, value: res.translatedText });
+          translatedPathValues.push({ path: f.path, pathSegments: f.pathSegments, value: res.isValid ? res.translatedText : f.originalValue });
           return {
             ...f,
             translatedValue: res.translatedText,
-            status: 'completed' as const,
+            status: res.isValid ? 'completed' as const : 'error' as const,
           };
         }
         return f;
@@ -218,12 +222,15 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
         reviewedTermsCount: 0,
         uncertainTermsCount,
         placeholderErrors,
+        allowedPaths: activeFields.map(field => field.pathSegments || []),
       });
 
+      const gate=jsonQualityGate(JSON.stringify(inspection.rawJson),JSON.stringify(reconstructed),activeFields.map(field=>field.pathSegments||[]),placeholderErrors.length);
+      report.isValid=report.isValid && gate.status==='PASS';
       setValidationReport(report);
       updateStep('validate_structure', report.isValid ? 'completed' : 'error');
       setProgressPercent(100);
-      setProgressItem('Traducción y validación completadas exitosamente.');
+      setProgressItem(report.isValid ? 'Traducción validada.' : 'Validación fallida: la copia no se puede exportar.');
     } catch (err: any) {
       console.error('Batch translation failed:', err);
       alert(`Error en el proceso de traducción: ${err.message}`);
@@ -233,7 +240,7 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
   };
 
   // Download translated JSON with -es suffix
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!translatedJson || !inspection) return;
 
     if (!validationReport?.isValid) {
@@ -249,13 +256,10 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
       newName = `${newName}-es.json`;
     }
 
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(translatedJson, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', newName);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    try {
+      const result = await window.desktop.saveJson(JSON.stringify(translatedJson, null, 2), newName);
+      if (result.saved) await window.desktop.openOutput();
+    } catch { alert('No se pudo guardar. Selecciona un nombre nuevo; los originales y archivos existentes no se sobrescriben.'); }
   };
 
   // Filtered fields
@@ -277,82 +281,23 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Upload & Sample Bar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Dropzone */}
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`lg:col-span-2 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-3 ${
-            dragOver
-              ? 'border-amber-400 bg-amber-950/20'
-              : 'border-slate-700 hover:border-slate-500 bg-slate-900/60'
-          }`}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json,application/json"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 border border-slate-700">
-            <Upload className="w-6 h-6 text-amber-400" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-200">
-              Arrastra y suelta tu archivo JSON de Foundry VTT / Babele aquí
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              o haz clic para explorar tu ordenador (Items, Spells, Actors, Journal Entries, RollTables)
-            </p>
-          </div>
-          <span className="text-[11px] font-mono text-slate-500">
-            Preservación garantizada: Claves, IDs, UUIDs y Macros permanecerán 100% idénticos
-          </span>
-        </div>
-
-        {/* 1-Click Samples Box */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 flex flex-col justify-between space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-300">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Ejemplos Oficiales Preconfigurados</span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Prueba la preservación técnica sin necesidad de buscar un archivo local:
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <button
-              onClick={() => handleLoadJson(JSON.stringify(SAMPLE_FOUNDRY_ITEM, null, 2), 'fvtt-Item-warding-bond.json')}
-              className="w-full text-left px-3 py-2 text-xs rounded bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-amber-200 border border-slate-700 transition flex items-center justify-between"
-            >
-              <span className="truncate font-mono">1. Conjuro "Warding Bond" (Macro @UUID + Roll)</span>
-              <FileCode className="w-3.5 h-3.5 text-blue-400 shrink-0 ml-2" />
-            </button>
-
-            <button
-              onClick={() => handleLoadJson(JSON.stringify(SAMPLE_FOUNDRY_JOURNAL, null, 2), 'fvtt-JournalEntry-combat-rules.json')}
-              className="w-full text-left px-3 py-2 text-xs rounded bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-amber-200 border border-slate-700 transition flex items-center justify-between"
-            >
-              <span className="truncate font-mono">2. Diario "Combat Rules & Features"</span>
-              <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0 ml-2" />
-            </button>
-          </div>
-
-          <div className="text-[10px] text-slate-500 font-mono">
-            D&D 2024 / SRD 5.2.1 • Foundry v11/v12 Compatible
-          </div>
-        </div>
+      <div><h1 className="page-title">Traduce tu contenido de Foundry</h1><p className="page-subtitle">Abre un JSON, traduce los textos y guarda una copia. Las referencias técnicas se conservan.</p></div>
+      <BatchTranslator onLoad={handleLoadJson} disabled={isTranslating} />
+      <div className="flex items-center justify-between gap-3 text-xs text-slate-400">
+        <label className="flex items-center gap-2">Idioma de origen
+          <select className="bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5" value={sourceLanguage} disabled={isTranslating} onChange={e => setSourceLanguage(e.target.value as 'auto' | 'en' | 'ru')}><option value="auto">Detectar automáticamente</option><option value="en">Inglés</option><option value="ru">Ruso</option></select>
+        </label>
+        <span>Destino: <strong className="text-slate-200">Español</strong></span>
       </div>
-
+      {!inspection && <>
+        <div className="empty-guide">
+          <div className="guide-step"><span>01 · ABRIR</span><strong>Selecciona tu contenido</strong><p>Elige un archivo o explora los JSON de una carpeta.</p></div>
+          <div className="guide-step"><span>02 · TRADUCIR</span><strong>Revisa los textos detectados</strong><p>Los IDs, las rutas y las referencias se mantienen intactos.</p></div>
+          <div className="guide-step"><span>03 · GUARDAR</span><strong>Exporta una copia validada</strong><p>El original permanece en su lugar, sin cambios.</p></div>
+        </div>
+        <div onDragOver={e => e.preventDefault()} onDrop={handleDrop} className="border border-dashed border-slate-700 rounded-lg p-4 text-center text-xs text-slate-400">También puedes arrastrar un archivo JSON aquí.</div>
+      </>}
+      <details className="text-xs text-slate-500"><summary className="cursor-pointer">Probar con un ejemplo</summary><div className="flex gap-2 pt-3"><button disabled={isTranslating} className="secondary-action" onClick={() => handleLoadJson(JSON.stringify(SAMPLE_FOUNDRY_ITEM), 'conjuro.json')}>Conjuro con referencias</button><button disabled={isTranslating} className="secondary-action" onClick={() => handleLoadJson(JSON.stringify(SAMPLE_FOUNDRY_JOURNAL), 'diario.json')}>Diario de ejemplo</button></div></details>
       {/* Document Inspector Card */}
       {inspection && (
         <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl space-y-4 p-5">
@@ -574,20 +519,16 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleStartTranslation}
-                disabled={isTranslating || inspection.fields.filter((f) => f.userInclude).length === 0}
-                className={`flex items-center space-x-2 px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider transition shadow-lg ${
-                  isTranslating
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-red-950/50 border border-red-500/50'
-                }`}
+                disabled={isTranslating || inspection.fields.filter((f) => f.userInclude && f.classification === 'TRANSLATABLE').length === 0}
+                className="primary-action"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>
                   {isTranslating
                     ? 'Traduciendo...'
-                    : `Traducir Campos Seleccionados (${
-                        inspection.fields.filter((f) => f.userInclude).length
-                      })`}
+                    : `Traducir ${
+                        inspection.fields.filter((f) => f.userInclude && f.classification === 'TRANSLATABLE').length
+                      } textos`}
                 </span>
               </button>
 
@@ -597,7 +538,7 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
                   className="flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-semibold bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-700 transition"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Descargar -es.json</span>
+                  <span>Guardar copia</span>
                 </button>
               )}
             </div>
@@ -698,7 +639,7 @@ export const JsonTranslator: React.FC<JsonTranslatorProps> = () => {
                       <th className="py-2.5 px-3 w-10 text-center">Incluir</th>
                       <th className="py-2.5 px-3 w-44">Ruta JSON</th>
                       <th className="py-2.5 px-3 w-28">Clasificación</th>
-                      <th className="py-2.5 px-3">Contenido Original (Inglés)</th>
+                      <th className="py-2.5 px-3">Texto original</th>
                       <th className="py-2.5 px-3">Traducción (Español)</th>
                     </tr>
                   </thead>

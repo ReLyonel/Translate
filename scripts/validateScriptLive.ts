@@ -1,0 +1,14 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { translateScript, inspectScript } from '../desktop/scriptTranslation';
+import { translate } from '../desktop/providers';
+const input = process.argv[2]; const source = await fs.readFile(input,'utf8');
+const settings = {endpoint:'http://127.0.0.1:11500',model:'translategemma:27b',provider:'ollama' as const};
+const result = await translateScript(source,request=>translate(settings,request),new AbortController().signal,'auto');
+await fs.mkdir('reports/module-validation',{recursive:true});
+await fs.writeFile(path.resolve('reports/module-validation/translation-es.mjs'),result);
+const unchanged = createHash('sha256').update(source).digest('hex') === createHash('sha256').update(await fs.readFile(input)).digest('hex');
+const report = {texts:inspectScript(source).length, originalUnchanged:unchanged, parsed:true, provider:settings, output:'reports/module-validation/translation-es.mjs'};
+await fs.writeFile('reports/module-validation/script-report.json',JSON.stringify(report,null,2)); console.log(JSON.stringify(report));
+if (!unchanged) process.exitCode = 1;

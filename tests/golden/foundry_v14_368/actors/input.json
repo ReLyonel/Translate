@@ -1,0 +1,20 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Attack",
+  "type": "npc",
+  "items": [
+    {
+      "_id": "qrstuvwxyzABCDEF",
+      "name": "Sword",
+      "system": {
+        "description": {
+          "value": "<p>Attack @UUID[Item.abcdefghijklmnop]</p>"
+        },
+        "formula": "1d20+5"
+      }
+    }
+  ],
+  "_stats": {
+    "coreVersion": "14.368"
+  }
+}

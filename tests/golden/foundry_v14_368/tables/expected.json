@@ -1,0 +1,16 @@
+{
+  "_id": "abcdefghijklmnop",
+  "name": "Ataque",
+  "formula": "1d20",
+  "results": [
+    {
+      "_id": "qrstuvwxyzABCDEF",
+      "text": "Espada",
+      "range": [
+        1,
+        2
+      ],
+      "documentId": "abcdefghijklmnop"
+    }
+  ]
+}

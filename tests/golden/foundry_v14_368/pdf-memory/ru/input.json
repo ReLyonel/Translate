@@ -1,0 +1,1 @@
+{"_id":"abcdefghijklmnop","name":"Длинный меч","type":"weapon","img":"icons/weapons/sword.webp","system":{"description":{"value":"<p>Совершите бросок атаки против @UUID[Item.target] и используйте [[/r 1d20+5]].</p>"},"damage":{"formula":"1d8+5"}},"_stats":{"systemId":"dnd5e"}}

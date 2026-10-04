@@ -19,4 +19,28 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - run: bun run lint
-      - run: bun test
+      - name: Native integrity regression gate
+        run: bunx vitest run tests/golden tests/jobs tests/memory tests/contracts tests/thermal
+      - run: bun run test
+      - run: bun run build
+  desktop-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: node node_modules/electron/install.js
+      - run: bun run lint
+      - run: bun run test
+      - run: bun run package:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify packaged desktop without system Node
+        shell: pwsh
+        run: ./scripts/verify-desktop.ps1 -ExecutablePath './release/win-unpacked/Traductor Foundry.exe'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: traductor-foundry-windows
+          path: release/*.exe

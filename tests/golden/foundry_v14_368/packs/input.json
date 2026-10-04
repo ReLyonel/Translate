@@ -1,0 +1,16 @@
+{
+  "id": "example",
+  "title": "Attack",
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.368"
+  },
+  "packs": [
+    {
+      "name": "items",
+      "label": "Sword",
+      "path": "packs/items",
+      "type": "Item"
+    }
+  ]
+}

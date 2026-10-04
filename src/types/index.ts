@@ -31,6 +31,7 @@ export type JsonFieldClassification = 'TRANSLATABLE' | 'PROTECTED' | 'UNCERTAIN'
 export interface DetectedField {
   id: string;
   path: string;
+  pathSegments?: (string | number)[];
   originalValue: string;
   translatedValue?: string;
   classification: JsonFieldClassification;
@@ -73,6 +74,7 @@ export interface ValidationReport {
   originalKeysCount: number;
   translatedKeysCount: number;
   modifiedKeys: string[];
+  structuralErrors?: { path: (string | number)[]; code: string }[];
   modifiedIds: string[];
   modifiedUuids: string[];
   modifiedMacros: string[];

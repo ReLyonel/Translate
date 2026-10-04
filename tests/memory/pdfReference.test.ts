@@ -1,0 +1,13 @@
+import {afterEach,expect,it} from 'vitest';
+import fs from 'node:fs/promises';import path from 'node:path';import os from 'node:os';
+import {pdfReferenceStatistics} from '../../desktop/memory/pdfReference';
+import {MemoryStore} from '../../desktop/memory/store';
+const roots:string[]=[];
+afterEach(async()=>{for(const root of roots.splice(0))await fs.rm(root,{recursive:true,force:true});});
+async function fixture(){const root=await fs.mkdtemp(path.join(os.tmpdir(),'pdf-reference-'));roots.push(root);await fs.mkdir(path.join(root,'pdf-reference'));return root;}
+const document=(language='es')=>({id:'a'.repeat(16),sha256:'a'.repeat(64),language,pageCount:4,segmentCount:30,status:'processed',source_verified:true,source_verification:'USER_VERIFIED',verification_scope:'DOCUMENT_ONLY_NOT_BILINGUAL_ALIGNMENT',approved_translation_pairs:0});
+async function write(root:string,documents:unknown[]){await fs.writeFile(path.join(root,'pdf-reference/index.json'),JSON.stringify({schema_version:1,policy:'VERIFIED_REFERENCE_ALIGNMENT_REQUIRED',documents}));}
+it('supports installations without PDF references',async()=>{const root=await fixture();expect(await pdfReferenceStatistics(root)).toMatchObject({loaded:false,verified_documents:0,approved_translation_pairs:0});});
+it('counts verified documents and languages without approving memory or claiming bilingual matches',async()=>{const root=await fixture();await write(root,[document()]);const store=await new MemoryStore(root).load();await store.candidate('Sword','Espada','en',{},'manual','');const before=store.statistics();expect(await pdfReferenceStatistics(root)).toMatchObject({loaded:true,verified_documents:1,pages:4,segments:30,documents_by_language:{es:1},approved_translation_pairs:0});expect(store.statistics()).toEqual(before);expect(store.exact('Sword','en',{})).toBeUndefined();});
+it('rejects a registry that promotes guessed alignments using document verification',async()=>{const root=await fixture();await write(root,[{...document(),approved_translation_pairs:1}]);await expect(pdfReferenceStatistics(root)).rejects.toThrow('PDF_REFERENCE_SCHEMA_INVALID');});
+it('rejects unverified or duplicate source identities and reports corrupted registries',async()=>{const root=await fixture();await write(root,[{...document(),source_verified:false}]);await expect(pdfReferenceStatistics(root)).rejects.toThrow();await write(root,[document(),document('en')]);await expect(pdfReferenceStatistics(root)).rejects.toThrow();await fs.writeFile(path.join(root,'pdf-reference/index.json'),'{');await expect(pdfReferenceStatistics(root)).rejects.toThrow();});

@@ -1,3 +1,7 @@
+import { validateHtmlIntegrity } from './htmlIntegrity';
+import { JsonEngine } from '../json/jsonEngine';
+import { ProtectedContentEngine } from '../protected-content/protectedContentEngine';
+import { structuralDiff, locationKey, type JsonLocation } from './structuralDiff';
 import { ValidationReport } from '../../types';
 
 export class FoundryValidator {
@@ -10,6 +14,7 @@ export class FoundryValidator {
       reviewedTermsCount: number;
       uncertainTermsCount: number;
       placeholderErrors?: string[];
+      allowedPaths?: JsonLocation[];
     }
   ): ValidationReport {
     const modifiedKeys: string[] = [];
@@ -78,6 +83,18 @@ export class FoundryValidator {
       return { keys, ids, uuids, macros, formulas, htmlTexts, scalars };
     };
 
+    const safeFields = JsonEngine.analyze(originalJson).fields.filter(field => field.classification === 'TRANSLATABLE');
+    const explicit = stats.allowedPaths ? new Set(stats.allowedPaths.map(locationKey)) : undefined;
+    const allowed = safeFields.map(field => field.pathSegments || []).filter(path => !explicit || explicit.has(locationKey(path)));
+    const structuralErrors = structuralDiff(originalJson,translatedJson,allowed);
+    const read = (value: any, path: JsonLocation) => path.reduce((current,key) => current?.[key],value);
+    for (const path of allowed) {
+      const before = read(originalJson,path); const after = read(translatedJson,path);
+      if (typeof before !== 'string' || typeof after !== 'string') continue;
+      const signature = (text: string) => [...ProtectedContentEngine.protect(text).tokens.values()].map(token => [token.type,token.original]);
+      try {if (JSON.stringify(signature(before)) !== JSON.stringify(signature(after))) modifiedMacros.push('Contenido tecnico alterado en ' + locationKey(path));}
+      catch {placeholderErrors.push('Sintaxis tecnica ambigua en '+locationKey(path));}
+    }
     const origMeta = extractMetadata(originalJson);
     const transMeta = extractMetadata(translatedJson);
 
@@ -142,48 +159,16 @@ export class FoundryValidator {
     }
     for (const formula of origMeta.formulas) if (!transMeta.formulas.includes(formula)) modifiedFormulas.push(`Fórmula modificada o eliminada: ${formula}`);
 
-    // 5. HTML Balance Check
-    const checkHtmlBalance = (html: string) => {
-      const tagRegex = /<\/?([a-z0-9]+)(?:\s+[^>]*)?>/gi;
-      const stack: string[] = [];
-      const voidTags = new Set(['br', 'hr', 'img', 'input', 'link', 'meta']);
-
-      let match: RegExpExecArray | null;
-      while ((match = tagRegex.exec(html)) !== null) {
-        const fullTag = match[0];
-        const tagName = match[1].toLowerCase();
-
-        if (voidTags.has(tagName) || fullTag.endsWith('/>')) {
-          continue;
-        }
-
-        if (fullTag.startsWith('</')) {
-          const last = stack.pop();
-          if (last !== tagName) {
-            return `Etiqueta de cierre desbalanceada: esperada </${last || 'ninguna'}>, encontrada </${tagName}>`;
-          }
-        } else {
-          stack.push(tagName);
-        }
-      }
-
-      if (stack.length > 0) {
-        return `Etiquetas sin cerrar: <${stack.join('>, <')}>`;
-      }
-      return null;
-    };
-
-    const originalHtml = new Map(origMeta.htmlTexts.map((entry) => [entry.path, entry.value.match(/<[^>]+>/g)?.join('') || '']));
-    for (const html of transMeta.htmlTexts) {
-      const err = checkHtmlBalance(html.value);
-      if (err && !htmlErrors.includes(err)) {
-        htmlErrors.push(err);
-      }
-      const signature = html.value.match(/<[^>]+>/g)?.join('') || '';
-      if (originalHtml.get(html.path) !== signature) htmlErrors.push(`Estructura HTML o atributos modificados en ${html.path}`);
+    // Lexical comparison shares the protection engine's exact tag boundaries.
+    const htmlPaths = new Set(safeFields.map(field=>field.path));
+    const originalHtml = new Map(origMeta.htmlTexts.filter(entry=>htmlPaths.has(entry.path)).map(entry=>[entry.path,entry.value]));
+    const translatedHtml = new Map(transMeta.htmlTexts.filter(entry=>htmlPaths.has(entry.path)).map(entry=>[entry.path,entry.value]));
+    for(const path of new Set([...originalHtml.keys(),...translatedHtml.keys()])) {
+      for(const error of validateHtmlIntegrity(originalHtml.get(path)||'',translatedHtml.get(path)||''))htmlErrors.push(error+' en '+path);
     }
 
     const isValid =
+      structuralErrors.length === 0 &&
       modifiedKeys.length === 0 &&
       modifiedIds.length === 0 &&
       modifiedUuids.length === 0 &&
@@ -198,6 +183,7 @@ export class FoundryValidator {
       originalKeysCount,
       translatedKeysCount,
       modifiedKeys,
+      structuralErrors,
       modifiedIds,
       modifiedUuids,
       modifiedMacros,
